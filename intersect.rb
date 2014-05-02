@@ -110,12 +110,12 @@ s = g.rules.reject { |r| r.rhs.first.class!=NonTerminal}#.reject{|r| r.lhs.sym =
 
 
 
-# parse
-puts "parse"
-def visit i, j, sz, active_chart, passive_chart, g, input
-  puts "| #{i},#{j}"
 
-  # SCAN
+
+
+# parse
+
+def scan i, j, active_chart, input
   active_chart.at(i,j).each { |item|
     if item.rhs[item.dot].class == Terminal
       if item.rhs[item.dot].w == input[item.span.left+item.dot].w
@@ -127,6 +127,16 @@ def visit i, j, sz, active_chart, passive_chart, g, input
       end
     end
   }
+end
+
+
+puts "parse"
+def visit i, j, sz, active_chart, passive_chart, g, input
+  puts "| #{i},#{j}"
+
+  # SCAN
+  scan i, j, active_chart, input
+
 
   1.upto(sz) { |span|
     break if span==(j-i)
