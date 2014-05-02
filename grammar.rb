@@ -1,5 +1,6 @@
 require 'nlp_ruby'
 
+
 class Terminal
   attr_accessor :w
 
@@ -44,7 +45,7 @@ class Rule
   end
 
   def to_s
-    "#{lhs} -> #{rhs.map{|i|i.to_s}.join ' '} (#{arity}) (#{@span.left}, #{@span.right})"
+    "#{lhs} -> #{rhs.map{|i|i.to_s}.join ' '} a:#{arity} (#{@span.left}, #{@span.right})"
   end
 
   def arity
@@ -88,9 +89,4 @@ class Grammar
     @rules.each { |r| s += r.to_s+"\n" }
   end
 end
-
-
-
-
-
 

@@ -2,13 +2,10 @@
 
 require_relative './grammar.rb'
 
-# interescts a WFSA (WFST) with a WSCFG to produce a hypergraph
-
-
 
 class Chart
   attr_accessor :m
-  
+
   def initialize input
     @m = []
     (input.size+1).times {
@@ -16,10 +13,6 @@ class Chart
       (input.size+1).times { _ << [] }
       @m << _
     }
-  end
-
-  def at span
-    return @m[span.left][span.right]
   end
 
   def at i,j
@@ -41,46 +34,34 @@ class Item < Rule
   end
 
   def to_s
-    "#{lhs} -> #{rhs.map{|i|i.to_s}.insert(@dot,'*').join ' '} (dot:#{@dot}) (a:#{arity}) (#{@span.left}, #{@span.right})"
+    "#{lhs} -> #{rhs.map{|i|i.to_s}.insert(@dot,'*').join ' '} dot:#{@dot} a:#{arity} (#{@span.left}, #{@span.right})"
   end
 end
 
-
-
-#def shift
-#end
-#def reduce
-#end
-#def init
-  #axioms,goals etc
-#end
-#def parse
-#end
-
-
+# set-up
 g = Grammar.new 'grammar'
 input = "ich sah ein kleines haus".split.map { |i| Terminal.new i }
-#start =  NonTerminal.new 'S'
-
 passive_chart = Chart.new input
 active_chart = Chart.new input
 
-
-
-# 1st row: arity0 rules
-unary_rules = g.rules.reject { |r| r.arity>0 }
-input.each_with_index { |t,j|
-  unary_rules.each { |r|
-    if r.rhs.first.w == t.w
-      passive_chart.at(j,j+1) << Item.new(r)
-      passive_chart.at(j,j+1).last.span.left = j
-      passive_chart.at(j,j+1).last.span.right = j+1
-      passive_chart.at(j,j+1).last.dot = 1
+# pre-fill passive chart w/ arity-0 rules
+g.rules.reject { |r| r.arity>0 }.each { |r|
+  input.each_index.select{ |j| input[j].w==r.rhs.first.w }.each { |j|
+    k = 1
+    if r.rhs.size > 1
+      slice = input[j,j+(r.rhs.size-1)].map { |i| i.w }
+      if slice == r.rhs.map { |i| i.w }
+        k = r.rhs.size
+      else
+        next
+      end
     end
+    passive_chart.at(j,j+k) << Item.new(r)
+    passive_chart.at(j,j+k).last.span.left = j
+    passive_chart.at(j,j+k).last.span.right = j+k
+    passive_chart.at(j,j+k).last.dot = k 
   }
 }
-
-
 
 # pre-fill active chart with non 0arity rules starting with a (single(!)) T
 g.rules.reject{|r| r.rhs[0].class==NonTerminal||r.arity==0}.each {|r|
@@ -89,12 +70,13 @@ g.rules.reject{|r| r.rhs[0].class==NonTerminal||r.arity==0}.each {|r|
       (j+2).upto(input.size) { |k| # no empty NT!
         active_chart.at(j,k) << Item.new(r)
         active_chart.at(j,k).last.span.left = j
-        active_chart.at(j,k).last.span.right = j+1 # k
+        active_chart.at(j,k).last.span.right = j+1
         active_chart.at(j,k).last.dot = 1
       }
     end
   }
 }
+
 # pre-fill active chart
 s = g.rules.reject { |r| r.rhs.first.class!=NonTerminal}#.reject{|r| r.lhs.sym == 'S'}
 (input.size).times { |k|
@@ -102,22 +84,16 @@ s = g.rules.reject { |r| r.rhs.first.class!=NonTerminal}#.reject{|r| r.lhs.sym =
     s.each { |r|
     active_chart.at(i,i+k+2) << Item.new(r)
     active_chart.at(i,i+k+2).last.span.left = i
-    active_chart.at(i,i+k+2).last.span.right = i #i+k+2
+    active_chart.at(i,i+k+2).last.span.right = i
     active_chart.at(i,i+k+2).last.dot = 0
     }
   }
 }
 
-
-
-
-
-
-# parse
-
-def scan i, j, active_chart, input
+# scan
+def scan i, j, active_chart, passive_chart, input
   active_chart.at(i,j).each { |item|
-    if item.rhs[item.dot].class == Terminal
+    while item.rhs[item.dot].class == Terminal
       if item.rhs[item.dot].w == input[item.span.left+item.dot].w
         item.dot += 1
         if item.dot == item.rhs.size
@@ -129,14 +105,12 @@ def scan i, j, active_chart, input
   }
 end
 
-
-puts "parse"
+# parse
 def visit i, j, sz, active_chart, passive_chart, g, input
   puts "| #{i},#{j}"
 
   # SCAN
-  scan i, j, active_chart, input
-
+  scan i, j, active_chart, passive_chart, input
 
   1.upto(sz) { |span|
     break if span==(j-i)
@@ -147,7 +121,7 @@ def visit i, j, sz, active_chart, passive_chart, g, input
       passive_chart.at(k, k+span).each { |passive_item|
         if active_item.rhs[active_item.dot].class==NonTerminal && passive_item.lhs.sym == active_item.rhs[active_item.dot].sym
           next if not active_item.span.right==passive_item.span.left
-          active_item.span.right = passive_item.span.right #if passive_item.span.right > active_item.span.right
+          active_item.span.right = passive_item.span.right
           active_item.dot += 1
           if active_item.dot == active_item.rhs.size
             passive_chart.at(i,j) << Item.new(active_item)
@@ -157,30 +131,20 @@ def visit i, j, sz, active_chart, passive_chart, g, input
       }
     }
 
-  # SCAN
-  active_chart.at(i,j).each { |item|
-    if item.rhs[item.dot].class == Terminal
-      if item.rhs[item.dot].w == input[item.span.left+item.dot].w
-        item.dot += 1
-        if item.dot == item.rhs.size
-          passive_chart.at(i,j) << Item.new(item)
-          passive_chart.at(i,j).last.span.right = item.span.left+item.dot
-        end
-      end
-    end
-  }
+  scan i, j, active_chart, passive_chart, input
 
   }
 end
 
+# once for each cell
 (input.size).times { |k|
   0.upto(input.size-(k+2)) { |i|
-    visit i, i+k+2, input.size, active_chart, passive_chart, g, input 
+    visit i, i+k+2, input.size, active_chart, passive_chart, g, input
   }
 }
-puts "---"
 
-active_chart.at(0,5).each { |item|
+puts "---"
+passive_chart.at(3,5).each { |item|
   puts item.to_s
 }
 
