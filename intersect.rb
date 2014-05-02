@@ -89,7 +89,7 @@ g.rules.reject{|r| r.rhs[0].class==NonTerminal||r.arity==0}.each {|r|
       (j+2).upto(input.size) { |k| # no empty NT!
         active_chart.at(j,k) << Item.new(r)
         active_chart.at(j,k).last.span.left = j
-        active_chart.at(j,k).last.span.right = k #j+1 # k
+        active_chart.at(j,k).last.span.right = j+1 # k
         active_chart.at(j,k).last.dot = 1
       }
     end
@@ -102,7 +102,7 @@ s = g.rules.reject { |r| r.rhs.first.class!=NonTerminal}#.reject{|r| r.lhs.sym =
     s.each { |r|
     active_chart.at(i,i+k+2) << Item.new(r)
     active_chart.at(i,i+k+2).last.span.left = i
-    active_chart.at(i,i+k+2).last.span.right = i+k+2
+    active_chart.at(i,i+k+2).last.span.right = i #i+k+2
     active_chart.at(i,i+k+2).last.dot = 0
     }
   }
@@ -122,7 +122,7 @@ def visit i, j, sz, active_chart, passive_chart, g, input
         item.dot += 1
         if item.dot == item.rhs.size
           passive_chart.at(i,j) << Item.new(item)
-          #passive_chart.at(i,j).last.span.right = item.span.left+item.dot
+          passive_chart.at(i,j).last.span.right = item.span.left+item.dot
         end
       end
     end
@@ -136,7 +136,8 @@ def visit i, j, sz, active_chart, passive_chart, g, input
       active_chart.at(i,j).each { |active_item|
       passive_chart.at(k, k+span).each { |passive_item|
         if active_item.rhs[active_item.dot].class==NonTerminal && passive_item.lhs.sym == active_item.rhs[active_item.dot].sym
-          active_item.span.right = passive_item.span.right if passive_item.span.right > active_item.span.right
+          next if not active_item.span.right==passive_item.span.left
+          active_item.span.right = passive_item.span.right #if passive_item.span.right > active_item.span.right
           active_item.dot += 1
           if active_item.dot == active_item.rhs.size
             passive_chart.at(i,j) << Item.new(active_item)
@@ -153,6 +154,7 @@ def visit i, j, sz, active_chart, passive_chart, g, input
         item.dot += 1
         if item.dot == item.rhs.size
           passive_chart.at(i,j) << Item.new(item)
+          passive_chart.at(i,j).last.span.right = item.span.left+item.dot
         end
       end
     end
