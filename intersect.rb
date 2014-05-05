@@ -99,22 +99,7 @@ visit(n, n, 1) { |i,j|
   }
 }
 
-# scan
-def scan i, j, active_chart, passive_chart, input
-  active_chart.at(i,j).each { |item|
-    while item.rhs[item.dot].class == Terminal
-      if item.rhs[item.dot].w == input[item.span.left+item.dot].w
-        item.dot += 1
-        if item.dot == item.rhs.size
-          passive_chart.at(i,j) << Item.new(item)
-          passive_chart.at(i,j).last.span.right = item.span.left+item.dot
-        end
-      end
-    end
-  }
-end
-
-def scan2 item, passive_chart, input, i, j
+def scan item, passive_chart, input, i, j
   while item.rhs[item.dot].class == Terminal 
     if item.rhs[item.dot].w == input[item.span.left+item.dot].w
       item.dot += 1
@@ -130,7 +115,6 @@ end
 # parse
 def parse i, j, sz, active_chart, passive_chart, g, input
   puts "| #{i},#{j}"
-  #scan i, j, active_chart, passive_chart, input
   1.upto(sz) { |span|
     break if span==(j-i)
     i.upto(j-span) { |k|
@@ -142,7 +126,7 @@ def parse i, j, sz, active_chart, passive_chart, g, input
           next if not active_item.span.right==passive_item.span.left
           active_item.span.right = passive_item.span.right
           active_item.dot += 1
-          scan2 active_item, passive_chart, input, i, j
+          scan active_item, passive_chart, input, i, j
           if active_item.dot == active_item.rhs.size
             passive_chart.at(i,j) << Item.new(active_item)
           end
@@ -150,8 +134,6 @@ def parse i, j, sz, active_chart, passive_chart, g, input
       }
     }
   }
-  #scan i, j, active_chart, passive_chart, input
-
   }
 end
 
