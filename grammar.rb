@@ -14,22 +14,22 @@ class Terminal
 end
 
 class NonTerminal
-  attr_accessor :sym, :n
+  attr_accessor :sym, :idx
 
-  def initialize s, n=1
-    @sym = s
-    @n = n
+  def initialize sym, idx=0
+    @sym = sym
+    @idx = idx
   end
 
   def to_s
-    "NT<#{sym}>"
+    "NT<#{sym},#{idx}>"
   end
 end
 
 class Span
   attr_accessor :left, :right
 
-  def initialize left=-1, right=-1
+  def initialize left=nil, right=nil
     @left = left
     @right = right
   end
@@ -38,10 +38,9 @@ end
 class Rule
   attr_accessor :lhs, :rhs, :span
 
-  def initialize lhs=nil, rhs=nil, span=Span.new
+  def initialize lhs=nil, rhs=nil, span=nil
     @lhs = ''
     @rhs = []
-    @span = span
   end
 
   def to_s
@@ -69,7 +68,7 @@ class Rule
   def self.from_s s
     r = self.new
     r.from_s s
-    return r
+    r
   end
 end
 
@@ -78,15 +77,14 @@ class Grammar
 
   def initialize fn
     @rules = []
-    l = ReadFile.readlines_strip fn
-    l.each { |i|
-      @rules << Rule.from_s(i)
-    }
+    a = ReadFile.readlines_strip fn
+    a.each { |s| @rules << Rule.from_s(s) }
   end
 
   def to_s
     s = ''
     @rules.each { |r| s += r.to_s+"\n" }
+    s
   end
 end
 
