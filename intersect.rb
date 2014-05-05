@@ -38,9 +38,19 @@ class Item < Rule
   end
 end
 
+def visit n, depth, skip=0 
+  (depth-skip).times { |i|
+    i += skip
+    0.upto(n-(i+1)) { |j|
+      yield j, j+i+1 if block_given?
+    }
+  }
+end
+
 # set-up
 g = Grammar.new 'grammar'
 input = "ich sah ein kleines haus".split.map { |i| Terminal.new i }
+n = input.size
 passive_chart = Chart.new input
 active_chart = Chart.new input
 
@@ -80,14 +90,12 @@ g.rules.select { |r| r.rhs.first.class==Terminal }.each { |r|
 
 # seed active chart
 s = g.rules.reject { |r| r.rhs.first.class!=NonTerminal }
-(input.size).times { |k|
-  0.upto(input.size-(k+2)) { |i|
-    s.each { |r|
-      active_chart.at(i,i+k+2) << Item.new(r)
-      active_chart.at(i,i+k+2).last.span.left = i
-      active_chart.at(i,i+k+2).last.span.right = i
-      active_chart.at(i,i+k+2).last.dot = 0
-    }
+visit(n, n, 1) { |i,j|
+  s.each { |r|
+    active_chart.at(i,j) << Item.new(r)
+    active_chart.at(i,j).last.span.left = i
+    active_chart.at(i,j).last.span.right = i
+    active_chart.at(i,j).last.dot = 0
   }
 }
 
@@ -148,24 +156,12 @@ def parse i, j, sz, active_chart, passive_chart, g, input
 end
 
 
-def visit n
-  n.times { |i|
-    0.upto(n-(i+2)) { |j|
-      yield j, j+i+1 if block_given?
-    }
-  }
-end
 
 
-visit(input.size) { |i,j|
-  puts "#{i},#{j}" 
-}
 
-# once for each cell
-(input.size).times { |k|
-  0.upto(input.size-(k+2)) { |i|
-    parse i, i+k+2, input.size, active_chart, passive_chart, g, input
-  }
+
+visit(n, n, 1)  { |i,j|
+   parse i, j, n, active_chart, passive_chart, g, input
 }
 
 
