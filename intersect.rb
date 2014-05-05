@@ -151,7 +151,7 @@ end
 def visit n
   n.times { |i|
     0.upto(n-(i+2)) { |j|
-      yield j, j+i+2 if block_given?
+      yield j, j+i+1 if block_given?
     }
   }
 end
