@@ -4,7 +4,6 @@ require_relative './grammar.rb'
 
 
 class Chart
-  attr_accessor :m
 
   def initialize input
     @m = []
@@ -136,11 +135,6 @@ def parse i, j, sz, active_chart, passive_chart, g, input
   }
   }
 end
-
-
-
-
-
 
 visit(n, n, 1)  { |i,j|
    parse i, j, n, active_chart, passive_chart, g, input
