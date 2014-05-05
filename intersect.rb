@@ -44,48 +44,49 @@ input = "ich sah ein kleines haus".split.map { |i| Terminal.new i }
 passive_chart = Chart.new input
 active_chart = Chart.new input
 
-# pre-fill passive chart w/ arity-0 rules
-g.rules.reject { |r| r.arity>0 }.each { |r|
+# pre-fill passive chart w/ 0-arity rules
+g.rules.select { |r| r.rhs.first.class==Terminal }.each { |r|
   input.each_index.select{ |j| input[j].w==r.rhs.first.w }.each { |j|
     k = 1
     if r.rhs.size > 1
-      slice = input[j,j+(r.rhs.size-1)].map { |i| i.w }
-      if slice == r.rhs.map { |i| i.w }
-        k = r.rhs.size
+      z = r.rhs.index { |i| i.class==NonTerminal }
+      if z
+        z -= 1
+      else
+        z = r.rhs.size-1
+      end
+      slice = input[j..j+z].map { |i| i.w }
+      if slice == r.rhs[0..z].map { |i| i.w }
+        k = z+1
       else
         next
       end
     end
-    passive_chart.at(j,j+k) << Item.new(r)
-    passive_chart.at(j,j+k).last.span.left = j
-    passive_chart.at(j,j+k).last.span.right = j+k
-    passive_chart.at(j,j+k).last.dot = k 
-  }
-}
-
-# pre-fill active chart with non 0arity rules starting with a (single(!)) T
-g.rules.reject{|r| r.rhs[0].class==NonTerminal||r.arity==0}.each {|r|
-  input.each_with_index { |i,j|
-    if i.w==r.rhs.first.w
-      (j+2).upto(input.size) { |k| # no empty NT!
-        active_chart.at(j,k) << Item.new(r)
-        active_chart.at(j,k).last.span.left = j
-        active_chart.at(j,k).last.span.right = j+1
-        active_chart.at(j,k).last.dot = 1
+    if k == r.rhs.size
+      passive_chart.at(j,j+k) << Item.new(r)
+      passive_chart.at(j,j+k).last.span.left = j
+      passive_chart.at(j,j+k).last.span.right = j+k
+      passive_chart.at(j,j+k).last.dot = k
+    else
+      (j+k).upto(input.size) { |l|
+      active_chart.at(j,l) << Item.new(r)
+      active_chart.at(j,l).last.span.left = j
+      active_chart.at(j,l).last.span.right = j+k
+      active_chart.at(j,l).last.dot = k
       }
     end
   }
 }
 
-# pre-fill active chart
-s = g.rules.reject { |r| r.rhs.first.class!=NonTerminal}#.reject{|r| r.lhs.sym == 'S'}
+# seed active chart
+s = g.rules.reject { |r| r.rhs.first.class!=NonTerminal }
 (input.size).times { |k|
   0.upto(input.size-(k+2)) { |i|
     s.each { |r|
-    active_chart.at(i,i+k+2) << Item.new(r)
-    active_chart.at(i,i+k+2).last.span.left = i
-    active_chart.at(i,i+k+2).last.span.right = i
-    active_chart.at(i,i+k+2).last.dot = 0
+      active_chart.at(i,i+k+2) << Item.new(r)
+      active_chart.at(i,i+k+2).last.span.left = i
+      active_chart.at(i,i+k+2).last.span.right = i
+      active_chart.at(i,i+k+2).last.dot = 0
     }
   }
 }
@@ -105,46 +106,71 @@ def scan i, j, active_chart, passive_chart, input
   }
 end
 
+def scan2 item, passive_chart, input, i, j
+  while item.rhs[item.dot].class == Terminal 
+    if item.rhs[item.dot].w == input[item.span.left+item.dot].w
+      item.dot += 1
+      item.span.right += 1
+      if item.dot == item.rhs.size
+        passive_chart.at(i,j) << Item.new(item)
+        passive_chart.at(i,j).last.span.right = item.span.left+item.dot
+      end
+    end
+  end
+end
+
 # parse
-def visit i, j, sz, active_chart, passive_chart, g, input
+def parse i, j, sz, active_chart, passive_chart, g, input
   puts "| #{i},#{j}"
-
-  # SCAN
-  scan i, j, active_chart, passive_chart, input
-
+  #scan i, j, active_chart, passive_chart, input
   1.upto(sz) { |span|
     break if span==(j-i)
     i.upto(j-span) { |k|
-      puts "  #{k},#{k+span} (##{span})"
-      # COMPLETE
-      active_chart.at(i,j).each { |active_item|
+    puts "  #{k},#{k+span} (##{span})"
+    # complete 
+    active_chart.at(i,j).each { |active_item|
       passive_chart.at(k, k+span).each { |passive_item|
         if active_item.rhs[active_item.dot].class==NonTerminal && passive_item.lhs.sym == active_item.rhs[active_item.dot].sym
           next if not active_item.span.right==passive_item.span.left
           active_item.span.right = passive_item.span.right
           active_item.dot += 1
+          scan2 active_item, passive_chart, input, i, j
           if active_item.dot == active_item.rhs.size
             passive_chart.at(i,j) << Item.new(active_item)
           end
         end
       }
-      }
     }
-
-  scan i, j, active_chart, passive_chart, input
+  }
+  #scan i, j, active_chart, passive_chart, input
 
   }
 end
 
+
+def visit n
+  n.times { |i|
+    0.upto(n-(i+2)) { |j|
+      yield j, j+i+2 if block_given?
+    }
+  }
+end
+
+
+visit(input.size) { |i,j|
+  puts "#{i},#{j}" 
+}
+
 # once for each cell
 (input.size).times { |k|
   0.upto(input.size-(k+2)) { |i|
-    visit i, i+k+2, input.size, active_chart, passive_chart, g, input
+    parse i, i+k+2, input.size, active_chart, passive_chart, g, input
   }
 }
 
+
 puts "---"
-passive_chart.at(3,5).each { |item|
+passive_chart.at(0,5).each { |item|
   puts item.to_s
 }
 

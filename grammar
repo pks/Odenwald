@@ -1,8 +1,11 @@
 [S] ||| [NP,1] [VP,2] ||| [1] [2] ||| logp=0
 [S] ||| ich [VP,2] ||| i [1] [2] ||| logp=0
+[S] ||| ich sah ein [NN,1] haus ||| i saw a [NN,1] house ||| logp=0
+[S] ||| ich [V,1] ein [NN,1] haus ||| i saw a [NN,1] house ||| logp=0
 [NP] ||| ich ||| i ||| logp=-0.5 use_i=1.0
 [NP] ||| ein [NN,1] ||| a [1] ||| logp=0 use_a=1.0
 [NN] ||| kleines haus ||| small house ||| logp=0 use_house=1
+[NN] ||| kleines haus ||| little house ||| logp=0 use_house=1
 [NN] ||| [JJ,1] haus ||| [1] house ||| logp=0 use_house=1
 [NN] ||| [JJ,1] haus ||| [1] shell ||| logp=0 use_shell=1
 [JJ] ||| kleines ||| small ||| logp=0 use_small=1.0
