@@ -94,7 +94,7 @@ def scan item, passive_chart, input, i, j
   while item.rhs[item.dot].class == Terminal
     if item.rhs[item.dot].w == input[item.span.left+item.dot].w
       item.dot += 1
-      item.span.right += 1
+      item.span.right = item.span.left+item.dot
       if item.dot == item.rhs.size
         passive_chart.at(i,j) << Item.new(item)
         passive_chart.at(i,j).last.span.right = item.span.left+item.dot
@@ -133,6 +133,7 @@ def main
   init active_chart, passive_chart, g, input, n
   visit(n, n, 1)  { |i,j| parse i, j, n, active_chart, passive_chart, g, input }
   passive_chart.at(0,5).each { |item| puts item.to_s }
+  passive_chart.at(1,5).each { |item| puts item.to_s }
 end
 
 
