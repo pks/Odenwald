@@ -15,7 +15,15 @@ class Chart
   end
 
   def at i, j
-    return @m[i][j]
+    @m[i][j]
+  end
+
+  def add r, i, j, right, dot=0
+    item = Item.new(r)
+    item.span.left = i
+    item.span.right = right
+    item.dot = dot
+    at(i, j) << item
   end
 end
 
@@ -45,9 +53,8 @@ end
 
 def init active_chart, passive_chart, grammar, input, n
   # pre-fill passive chart w/ 0-arity rules
-  s = grammar.rules.select { |r| r.rhs.first.class==Terminal }
-  s.each { |r|
-    input.each_index.select { |j| input[j].w==r.rhs.first.w }.each { |j|
+  grammar.rules.select { |r| r.rhs.first.class==Terminal }.each { |r|
+    input.each_index.select { |i| input[i].w==r.rhs.first.w }.each { |j|
       k = 1
       if r.rhs.size > 1
         z = r.rhs.index { |i| i.class==NonTerminal }
@@ -56,37 +63,23 @@ def init active_chart, passive_chart, grammar, input, n
         else
           z = r.rhs.size-1
         end
-        slice = input[j..j+z].map { |i| i.w }
-        if slice == r.rhs[0..z].map { |i| i.w }
+        if input[j..j+z].map { |i| i.w } == r.rhs[0..z].map { |i| i.w }
           k = z+1
         else
           next
         end
       end
       if k == r.rhs.size
-        passive_chart.at(j,j+k) << Item.new(r)
-        passive_chart.at(j,j+k).last.span.left = j
-        passive_chart.at(j,j+k).last.span.right = j+k
-        passive_chart.at(j,j+k).last.dot = k
+        passive_chart.add(r, j, j+k, j+k, k)
       else
-        (j+k).upto(input.size) { |l|
-        active_chart.at(j,l) << Item.new(r)
-        active_chart.at(j,l).last.span.left = j
-        active_chart.at(j,l).last.span.right = j+k
-        active_chart.at(j,l).last.dot = k
-        }
+        (j+k).upto(n) { |l|  active_chart.add(r, j, l, j+k, k) }
       end
     }
   }
   # seed active chart
   s = grammar.rules.reject { |r| r.rhs.first.class!=NonTerminal }
   visit(n, n, 1) { |i,j|
-    s.each { |r|
-      active_chart.at(i,j) << Item.new(r)
-      active_chart.at(i,j).last.span.left = i
-      active_chart.at(i,j).last.span.right = i
-      active_chart.at(i,j).last.dot = 0
-    }
+    s.each { |r| active_chart.add(r, i, j, i) }
   }
 end
 
@@ -96,8 +89,8 @@ def scan item, passive_chart, input, i, j
       item.dot += 1
       item.span.right = item.span.left+item.dot
       if item.dot == item.rhs.size
-        passive_chart.at(i,j) << Item.new(item)
-        passive_chart.at(i,j).last.span.right = item.span.left+item.dot
+        passive_chart.add(item, i, j, item.span.left+item.dot, item.dot)
+        break
       end
     end
   end
@@ -114,9 +107,7 @@ def parse i, j, sz, active_chart, passive_chart, g, input
             active_item.span.right = passive_item.span.right
             active_item.dot += 1
             scan active_item, passive_chart, input, i, j
-            if active_item.dot == active_item.rhs.size
-              passive_chart.at(i,j) << Item.new(active_item)
-            end
+            passive_chart.at(i,j) << Item.new(active_item) if active_item.dot==active_item.rhs.size
           end
         }
       }
@@ -131,9 +122,8 @@ def main
   passive_chart = Chart.new n
   active_chart = Chart.new n
   init active_chart, passive_chart, g, input, n
-  visit(n, n, 1)  { |i,j| parse i, j, n, active_chart, passive_chart, g, input }
-  passive_chart.at(0,5).each { |item| puts item.to_s }
-  passive_chart.at(1,5).each { |item| puts item.to_s }
+  visit(n, n, 1) { |i,j| parse i, j, n, active_chart, passive_chart, g, input }
+  visit(n, n, 0) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts item.to_s } }
 end
 
 
