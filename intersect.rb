@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require_relative './grammar.rb'
+STDOUT.sync = true
 
 
 class Chart
@@ -105,54 +106,86 @@ def scan item, passive_chart, input, i, j
         passive_chart.add(item, i, j, item.span.left+item.dot, item.dot)
         break
       end
+    else
+      break
     end
   end
 end
 
 def parse i, j, sz, active_chart, passive_chart, g, input
-  1.upto(sz) { |span|
-    break if span==(j-i)
-    i.upto(j-span) { |k|
-      STDERR.write "active chart size #{active_chart.at(i,j).size}\n"
-      active_chart.at(i,j).each { |active_item|
+  active_chart.at(i,j).each_with_index { |active_item,q|
+    1.upto(sz) { |span|
+      break if span==(j-i)
+      i.upto(j-span) { |k|
         passive_chart.at(k, k+span).each { |passive_item|
-          STDERR.write " passive chart size #{passive_chart.at(k,k+span).size}\n"
           if active_item.rhs[active_item.dot].class==NT && passive_item.lhs.symbol == active_item.rhs[active_item.dot].symbol
             next if not active_item.span.right==passive_item.span.left
-            active_item.span.right = passive_item.span.right
-            active_item.dot += 1
-            scan active_item, passive_chart, input, i, j
-            passive_chart.at(i,j) << Item.new(active_item) if active_item.dot==active_item.rhs.size
+            new_item = Item.new active_item
+            new_item.span.right = passive_item.span.right
+            new_item.dot += 1
+            scan new_item, passive_chart, input, i, j
+            if new_item.dot == new_item.rhs.size
+              passive_chart.at(i,j) << new_item
+            else
+              active_chart.at(i,j) << new_item
+            end
           end
         }
       }
     }
   }
+  # self-filling
+  to_add_active = []
+  to_add_passive = []
+  passive_chart.at(i,j).each { |passive_item|
+    active_chart.at(i,j).each { |active_item|
+      if passive_item.lhs.symbol == active_item.rhs[active_item.dot].symbol
+        new_item = Item.new active_item
+        new_item.span.right = passive_item.span.right
+        new_item.dot += 1
+        scan new_item, passive_chart, input, i, j
+        if new_item.dot == new_item.rhs.size
+          to_add_passive << new_item
+        else
+          to_add_active << new_item
+        end
+      end
+    }
+  }
+  to_add_active.each { |item| active_chart.at(i,j) << item }
+  to_add_passive.each { |item| passive_chart.at(i,j) << item }
+end
+
+def preprocess s
+  s.split.map { |i| T.new i }
 end
 
 def main
   #input = "ich sah ein kleines haus".split.map { |i| T.new i }
-  #input = "musharrafs letzter akt ?".split.map { |i| T.new i }
-  input = "das ukrainische parlament verweigerte heute den antrag , im rahmen einer novelle des strafgesetzbuches denjenigen paragrafen abzuschaffen , auf dessen grundlage die oppositionsführerin yulia timoshenko verurteilt worden war .".split.map { |i| T.new i }
+  input = preprocess "lebensmittel schuld an europäischer inflation"
   n = input.size
-  #g = Grammar.new 'grammar'
-  STDERR.write "reading grammar ..\n"
-  #g = Grammar.new '/home/pks/src/examples/cdec/data/grammar.gz'
-  g = Grammar.new 'grammar.1.gz'
-  STDERR.write "\nadding glue rules ..\n"
+
+  puts "reading grammar .."
+  g = Grammar.new 'grammar.x'
+
+  puts "adding glue rules .."
   g.add_glue_rules
-  STDERR.write "adding pass-through rules ..\n"
-  g.add_pass_through_rules input
+
+  #puts "adding pass-through rules .."
+  #g.add_pass_through_rules input
+
+  puts "initializing charts .."
   passive_chart = Chart.new n
   active_chart = Chart.new n
-  STDERR.write "initializing charts ..\n"
   init active_chart, passive_chart, g, input, n
-  STDERR.write "parsing ..\n\n"
+
+  puts "parsing .."
   visit(n, n, 1) { |i,j| 
-    STDERR.write " span (#{i},#{j})\n\n"
     parse i, j, n, active_chart, passive_chart, g, input
   }
-  visit(n, n, 0) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts item.to_s } }
+  
+  puts "---\npassive chart"
+  visit(n, n, 0) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts ' '+item.to_s if item.span.left==i&&item.span.right==j }; puts }
 end
 
 

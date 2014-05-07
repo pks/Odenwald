@@ -70,8 +70,8 @@ class Grammar
   def initialize fn
     @rules = []
     ReadFile.readlines_strip(fn).each_with_index { |s,j|
-      STDERR.write '.'
-      STDERR.write "\n" if j%100==0&&j>0
+      #STDERR.write '.'
+      #puts "\n" if j%100==0&&j>0
       @rules << Rule.from_s(s)
     }
   end
@@ -90,8 +90,8 @@ class Grammar
   end
 
   def add_pass_through_rules input
-    input.each { |w|
-      @rules << Rule.new(NT.new('X'), [T.new(w)])
+    input.each { |terminal|
+      @rules << Rule.new(NT.new('X'), [T.new(terminal.word)])
     }
   end
 end
