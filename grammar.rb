@@ -1,68 +1,60 @@
 require 'nlp_ruby'
 
 
-class Terminal
-  attr_accessor :w
+class T
+  attr_accessor :word
 
-  def initialize s
-    @w = s
+  def initialize word
+    @word = word
   end
 
   def to_s
-    "T<#{@w}>"
+    "T<#{@word}>"
   end
 end
 
-class NonTerminal
-  attr_accessor :sym, :idx
+class NT
+  attr_accessor :symbol, :index
 
-  def initialize sym, idx=0
-    @sym = sym
-    @idx = idx
+  def initialize symbol, index=0
+    @symbol = symbol
+    @index = index
   end
 
   def to_s
-    "NT<#{sym},#{idx}>"
+    "NT<#{@symbol},#{@index}>"
   end
 end
 
-class Span
-  attr_accessor :left, :right
 
-  def initialize left=nil, right=nil
-    @left = left
-    @right = right
-  end
-end
 
 class Rule
-  attr_accessor :lhs, :rhs, :span
+  attr_accessor :lhs, :rhs
 
-  def initialize lhs=nil, rhs=nil, span=nil
-    @lhs = ''
-    @rhs = []
+  def initialize lhs=nil, rhs=[]
+    @lhs = lhs
+    @rhs = rhs
   end
 
   def to_s
-    "#{lhs} -> #{rhs.map{|i|i.to_s}.join ' '} a:#{arity} (#{@span.left}, #{@span.right})"
+    "#{lhs} -> #{rhs.map{ |i| i.to_s }.join ' '} [arity=#{arity}]"
   end
 
   def arity
-    rhs.reject { |i| i.class == Terminal }.size
+    rhs.reject { |i| i.class==T }.size
   end
 
   def from_s s
-    a = splitpipe s, 3
-    @lhs = NonTerminal.new a[0].strip.gsub!(/(\[|\])/, "")
-    a[1].split.each { |i|
+    _ = splitpipe s, 3
+    @lhs = NT.new _[0].strip.gsub!(/(\[|\])/, "")
+    _[1].split.each { |i|
       i.strip!
       if i[0]=='[' && i[i.size-1] == ']'
-        @rhs << NonTerminal.new(i.gsub!(/(\[|\])/, "").split(',')[0])
+        @rhs << NT.new(i.gsub!(/(\[|\])/, "").split(',')[0])
       else
-        @rhs << Terminal.new(i)
+        @rhs << T.new(i)
       end
     }
-    @span = Span.new
   end
 
   def self.from_s s
@@ -77,14 +69,30 @@ class Grammar
 
   def initialize fn
     @rules = []
-    a = ReadFile.readlines_strip fn
-    a.each { |s| @rules << Rule.from_s(s) }
+    ReadFile.readlines_strip(fn).each_with_index { |s,j|
+      STDERR.write '.'
+      STDERR.write "\n" if j%100==0&&j>0
+      @rules << Rule.from_s(s)
+    }
   end
 
   def to_s
     s = ''
     @rules.each { |r| s += r.to_s+"\n" }
     s
+  end
+
+  def add_glue_rules
+    @rules.map { |r| r.lhs.symbol }.reject { |s| s=='S' }.uniq.each { |s|
+      @rules << Rule.new(NT.new('S'), [NT.new(s)])
+      @rules << Rule.new(NT.new('S'), [NT.new('S'), NT.new('X')])
+    }
+  end
+
+  def add_pass_through_rules input
+    input.each { |w|
+      @rules << Rule.new(NT.new('X'), [T.new(w)])
+    }
   end
 end
 

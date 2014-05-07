@@ -27,14 +27,27 @@ class Chart
   end
 end
 
+class Span
+  attr_accessor :left, :right
+
+  def initialize left=nil, right=nil
+    @left = left
+    @right = right
+  end
+end
+
 class Item < Rule
   attr_accessor :lhs, :rhs, :span, :dot
 
-  def initialize rule
-    @lhs = rule.lhs.dup
-    @rhs = rule.rhs.dup
-    @span = Span.new rule.span.left, rule.span.right
-    @dot = rule.dot if rule.class==Item
+  def initialize rule_or_item
+    @lhs = rule_or_item.lhs.dup
+    @rhs = rule_or_item.rhs.dup
+    if rule_or_item.class == Item
+      @span = Span.new rule_or_item.span.left, rule_or_item.span.right
+      @dot = rule_or_item.dot
+    else
+      @span = Span.new
+    end
   end
 
   def to_s
@@ -53,17 +66,17 @@ end
 
 def init active_chart, passive_chart, grammar, input, n
   # pre-fill passive chart w/ 0-arity rules
-  grammar.rules.select { |r| r.rhs.first.class==Terminal }.each { |r|
-    input.each_index.select { |i| input[i].w==r.rhs.first.w }.each { |j|
+  grammar.rules.select { |r| r.rhs.first.class==T }.each { |r|
+    input.each_index.select { |i| input[i].word==r.rhs.first.word }.each { |j|
       k = 1
       if r.rhs.size > 1
-        z = r.rhs.index { |i| i.class==NonTerminal }
+        z = r.rhs.index { |i| i.class==NT }
         if z
           z -= 1
         else
           z = r.rhs.size-1
         end
-        if input[j..j+z].map { |i| i.w } == r.rhs[0..z].map { |i| i.w }
+        if input[j..j+z].map { |i| i.word } == r.rhs[0..z].map { |i| i.word }
           k = z+1
         else
           next
@@ -77,15 +90,15 @@ def init active_chart, passive_chart, grammar, input, n
     }
   }
   # seed active chart
-  s = grammar.rules.reject { |r| r.rhs.first.class!=NonTerminal }
+  s = grammar.rules.reject { |r| r.rhs.first.class!=NT }
   visit(n, n, 1) { |i,j|
     s.each { |r| active_chart.add(r, i, j, i) }
   }
 end
 
 def scan item, passive_chart, input, i, j
-  while item.rhs[item.dot].class == Terminal
-    if item.rhs[item.dot].w == input[item.span.left+item.dot].w
+  while item.rhs[item.dot].class == T 
+    if item.rhs[item.dot].word == input[item.span.left+item.dot].word
       item.dot += 1
       item.span.right = item.span.left+item.dot
       if item.dot == item.rhs.size
@@ -100,9 +113,11 @@ def parse i, j, sz, active_chart, passive_chart, g, input
   1.upto(sz) { |span|
     break if span==(j-i)
     i.upto(j-span) { |k|
+      STDERR.write "active chart size #{active_chart.at(i,j).size}\n"
       active_chart.at(i,j).each { |active_item|
         passive_chart.at(k, k+span).each { |passive_item|
-          if active_item.rhs[active_item.dot].class==NonTerminal && passive_item.lhs.sym == active_item.rhs[active_item.dot].sym
+          STDERR.write " passive chart size #{passive_chart.at(k,k+span).size}\n"
+          if active_item.rhs[active_item.dot].class==NT && passive_item.lhs.symbol == active_item.rhs[active_item.dot].symbol
             next if not active_item.span.right==passive_item.span.left
             active_item.span.right = passive_item.span.right
             active_item.dot += 1
@@ -116,13 +131,27 @@ def parse i, j, sz, active_chart, passive_chart, g, input
 end
 
 def main
-  g = Grammar.new 'grammar'
-  input = "ich sah ein kleines haus".split.map { |i| Terminal.new i }
+  #input = "ich sah ein kleines haus".split.map { |i| T.new i }
+  #input = "musharrafs letzter akt ?".split.map { |i| T.new i }
+  input = "das ukrainische parlament verweigerte heute den antrag , im rahmen einer novelle des strafgesetzbuches denjenigen paragrafen abzuschaffen , auf dessen grundlage die oppositionsführerin yulia timoshenko verurteilt worden war .".split.map { |i| T.new i }
   n = input.size
+  #g = Grammar.new 'grammar'
+  STDERR.write "reading grammar ..\n"
+  #g = Grammar.new '/home/pks/src/examples/cdec/data/grammar.gz'
+  g = Grammar.new 'grammar.1.gz'
+  STDERR.write "\nadding glue rules ..\n"
+  g.add_glue_rules
+  STDERR.write "adding pass-through rules ..\n"
+  g.add_pass_through_rules input
   passive_chart = Chart.new n
   active_chart = Chart.new n
+  STDERR.write "initializing charts ..\n"
   init active_chart, passive_chart, g, input, n
-  visit(n, n, 1) { |i,j| parse i, j, n, active_chart, passive_chart, g, input }
+  STDERR.write "parsing ..\n\n"
+  visit(n, n, 1) { |i,j| 
+    STDERR.write " span (#{i},#{j})\n\n"
+    parse i, j, n, active_chart, passive_chart, g, input
+  }
   visit(n, n, 0) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts item.to_s } }
 end
 
