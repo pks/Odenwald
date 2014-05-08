@@ -69,11 +69,13 @@ class Grammar
 
   def initialize fn
     @rules = []
+    @glue_rules = []
     ReadFile.readlines_strip(fn).each_with_index { |s,j|
-      #STDERR.write '.'
-      #puts "\n" if j%100==0&&j>0
+      STDERR.write '.'
+      STDERR.write "\n" if (j+1)%80==0
       @rules << Rule.from_s(s)
     }
+    STDERR.write "\n"
   end
 
   def to_s
@@ -83,9 +85,12 @@ class Grammar
   end
 
   def add_glue_rules
+    # see https://github.com/jweese/thrax/wiki/Glue-grammar
     @rules.map { |r| r.lhs.symbol }.reject { |s| s=='S' }.uniq.each { |s|
       @rules << Rule.new(NT.new('S'), [NT.new(s)])
+      @glue_rules << @rules.last
       @rules << Rule.new(NT.new('S'), [NT.new('S'), NT.new('X')])
+      @glue_rules << @rules.last
     }
   end
 

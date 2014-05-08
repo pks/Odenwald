@@ -48,6 +48,7 @@ class Item < Rule
       @dot = rule_or_item.dot
     else
       @span = Span.new
+      @dot = 0
     end
   end
 
@@ -60,7 +61,7 @@ def visit n, depth, skip=0
   (depth-skip).times { |i|
     i += skip
     0.upto(n-(i+1)) { |j|
-      yield j, j+i+1 if block_given?
+      yield j, j+i+1
     }
   }
 end
@@ -86,7 +87,7 @@ def init active_chart, passive_chart, grammar, input, n
       if k == r.rhs.size
         passive_chart.add(r, j, j+k, j+k, k)
       else
-        (j+k).upto(n) { |l|  active_chart.add(r, j, l, j+k, k) }
+        (j+k).upto(n) { |l| active_chart.add r, j, l, j+k, k }
       end
     }
   }
@@ -97,23 +98,21 @@ def init active_chart, passive_chart, grammar, input, n
   }
 end
 
-def scan item, passive_chart, input, i, j
-  while item.rhs[item.dot].class == T 
-    if item.rhs[item.dot].word == input[item.span.left+item.dot].word
+def scan item, passive_chart, input
+  while item.rhs[item.dot].class == T
+    break if item.span.right > input.size-1
+    if item.rhs[item.dot].word == input[item.span.right].word
       item.dot += 1
-      item.span.right = item.span.left+item.dot
-      if item.dot == item.rhs.size
-        passive_chart.add(item, i, j, item.span.left+item.dot, item.dot)
-        break
-      end
+      item.span.right += 1
+      break if item.dot == item.rhs.size
     else
       break
     end
   end
 end
 
-def parse i, j, sz, active_chart, passive_chart, g, input
-  active_chart.at(i,j).each_with_index { |active_item,q|
+def parse i, j, sz, active_chart, passive_chart, input
+  active_chart.at(i,j).each_with_index { |active_item,z|
     1.upto(sz) { |span|
       break if span==(j-i)
       i.upto(j-span) { |k|
@@ -123,9 +122,9 @@ def parse i, j, sz, active_chart, passive_chart, g, input
             new_item = Item.new active_item
             new_item.span.right = passive_item.span.right
             new_item.dot += 1
-            scan new_item, passive_chart, input, i, j
+            scan new_item, passive_chart, input
             if new_item.dot == new_item.rhs.size
-              passive_chart.at(i,j) << new_item
+              passive_chart.at(i,j) << new_item if new_item.span.left==i&&new_item.span.right==j
             else
               active_chart.at(i,j) << new_item
             end
@@ -139,13 +138,15 @@ def parse i, j, sz, active_chart, passive_chart, g, input
   to_add_passive = []
   passive_chart.at(i,j).each { |passive_item|
     active_chart.at(i,j).each { |active_item|
+      next if active_item.rhs[active_item.dot].class!=NT
       if passive_item.lhs.symbol == active_item.rhs[active_item.dot].symbol
+        next if not active_item.span.right==passive_item.span.left
         new_item = Item.new active_item
         new_item.span.right = passive_item.span.right
         new_item.dot += 1
-        scan new_item, passive_chart, input, i, j
+        scan new_item, passive_chart, input
         if new_item.dot == new_item.rhs.size
-          to_add_passive << new_item
+          to_add_passive << new_item if new_item.span.left==i&&new_item.span.right==j
         else
           to_add_active << new_item
         end
@@ -161,29 +162,36 @@ def preprocess s
 end
 
 def main
-  #input = "ich sah ein kleines haus".split.map { |i| T.new i }
-  input = preprocess "lebensmittel schuld an europäischer inflation"
+  #input = preprocess 'ich sah ein kleines haus'
+  #input = preprocess 'lebensmittel schuld an europäischer inflation'
+  input = preprocess 'offizielle sind von nur' # 3 prozent' # ausgegangen , meldete bloomberg .'
   n = input.size
 
-  puts "reading grammar .."
-  g = Grammar.new 'grammar.x'
+  puts 'reading grammar'
+  #g = Grammar.new 'example/grammar'
+  #g = Grammar.new 'example/grammar.x'
+  g = Grammar.new 'example/grammar.3.gz' # 4th segment of newstest2008
 
-  puts "adding glue rules .."
+  puts 'adding glue rules'
   g.add_glue_rules
 
-  #puts "adding pass-through rules .."
+  #puts 'adding pass-through rules'
   #g.add_pass_through_rules input
 
-  puts "initializing charts .."
+  puts 'initializing charts'
   passive_chart = Chart.new n
   active_chart = Chart.new n
   init active_chart, passive_chart, g, input, n
 
-  puts "parsing .."
-  visit(n, n, 1) { |i,j| 
-    parse i, j, n, active_chart, passive_chart, g, input
+  active_chart.at(0, 1).each_with_index { |i,x| puts "#{x}. #{i.to_s}" }
+  puts passive_chart.at(0,1).size
+
+  puts 'parsing'
+  visit(n, n, 1) { |i,j|
+    STDERR.write " span (#{i}, #{j})\n"
+    parse i, j, n, active_chart, passive_chart, input
   }
-  
+
   puts "---\npassive chart"
   visit(n, n, 0) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts ' '+item.to_s if item.span.left==i&&item.span.right==j }; puts }
 end
