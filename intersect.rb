@@ -19,8 +19,8 @@ class Chart
     @m[i][j]
   end
 
-  def add r, i, j, right, dot=0
-    item = Item.new(r)
+  def add rule_or_item, i, j, right, dot=0
+    item = Item.new(rule_or_item)
     item.span.left = i
     item.span.right = right
     item.dot = dot
@@ -111,9 +111,9 @@ def scan item, passive_chart, input
   end
 end
 
-def parse i, j, sz, active_chart, passive_chart, input
-  active_chart.at(i,j).each_with_index { |active_item,z|
-    1.upto(sz) { |span|
+def parse i, j, n, active_chart, passive_chart, input
+  active_chart.at(i,j).each { |active_item|
+    1.upto(n) { |span|
       break if span==(j-i)
       i.upto(j-span) { |k|
         passive_chart.at(k, k+span).each { |passive_item|
@@ -126,12 +126,14 @@ def parse i, j, sz, active_chart, passive_chart, input
             if new_item.dot == new_item.rhs.size
               passive_chart.at(i,j) << new_item if new_item.span.left==i&&new_item.span.right==j
             else
-              active_chart.at(i,j) << new_item
+              # item is dead unless it has an NT to fill
+              active_chart.at(i,j) << new_item if new_item.span.left==i&&new_item.rhs[new_item.dot].class==NT
             end
           end
         }
       }
     }
+    true
   }
   # self-filling
   to_add_active = []
@@ -163,14 +165,14 @@ end
 
 def main
   #input = preprocess 'ich sah ein kleines haus'
-  #input = preprocess 'lebensmittel schuld an europäischer inflation'
-  input = preprocess 'offizielle sind von nur' # 3 prozent' # ausgegangen , meldete bloomberg .'
+  input = preprocess 'lebensmittel schuld an europäischer inflation'
+  #input = preprocess 'offizielle prognosen sind von nur 3 prozent ausgegangen , meldete bloomberg .'
   n = input.size
 
   puts 'reading grammar'
   #g = Grammar.new 'example/grammar'
-  #g = Grammar.new 'example/grammar.x'
-  g = Grammar.new 'example/grammar.3.gz' # 4th segment of newstest2008
+  g = Grammar.new 'example/grammar.x'
+  #g = Grammar.new 'example/grammar.3.gz' # 4th segment of newstest2008
 
   puts 'adding glue rules'
   g.add_glue_rules
@@ -182,9 +184,6 @@ def main
   passive_chart = Chart.new n
   active_chart = Chart.new n
   init active_chart, passive_chart, g, input, n
-
-  active_chart.at(0, 1).each_with_index { |i,x| puts "#{x}. #{i.to_s}" }
-  puts passive_chart.at(0,1).size
 
   puts 'parsing'
   visit(n, n, 1) { |i,j|
