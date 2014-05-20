@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require_relative './grammar.rb'
-STDOUT.sync = true
 
 
 class Chart
@@ -20,7 +19,7 @@ class Chart
     @m[i][j]
   end
 
-  def add i, j, item
+  def add item, i, j
     at(i,j) << item
     @b["#{i},#{j},#{item.lhs.symbol}"] = true
   end
@@ -59,14 +58,15 @@ def init input, n, active_chart, passive_chart, grammar
     input.each_index { |i|
       if input[i, r.rhs.size] == r.rhs.map { |x| x.word }
         new_item = Item.new r, i, i+r.rhs.size, r.rhs.size
-        passive_chart.add i, i+r.rhs.size, new_item
+        passive_chart.add new_item, i, i+r.rhs.size
       end
     }
   }
 end
 
 def scan item, input, limit, passive_chart
-  while item.rhs[item.dot].class == T && item.span.right < limit
+  while item.rhs[item.dot].class == T 
+    return false if item.span.right==limit
     if item.rhs[item.dot].word == input[item.span.right]
       item.dot += 1
       item.span.right += 1
@@ -74,44 +74,45 @@ def scan item, input, limit, passive_chart
       break
     end
   end
+  return true
 end
 
 def parse input, n, active_chart, passive_chart, grammar
-  2.upto(n) { |span| # outer loop
+  2.upto(n) { |span| # outer loops
     0.upto(n-span) { |k|
 
       puts " span(#{k},#{k+span})"
 
       # try to apply rules starting with T
-      grammar.mixed.select { |r| r.rhs.first.word == input[k] }.each { |r|
+      grammar.startt.select { |r| r.rhs.first.word == input[k] }.each { |r|
         new_item = Item.new r, k, k, 0
-        scan new_item, input, k+span, passive_chart
-        active_chart.at(k,k+span) << new_item
+        active_chart.at(k,k+span) << new_item if scan new_item, input, k+span, passive_chart
       }
 
       # seed active chart
-      grammar.rewrite.each { |r|
+      grammar.startn.each { |r|
         next if r.rhs.size > span
         active_chart.at(k,k+span) << Item.new(r, k, k, 0)
       }
 
       active_chart.at(k,k+span).each { |active_item|
-        next if active_item.rhs[active_item.dot].class==T
-        # inner loop
-        1.upto(span-1) { |span2|
+        1.upto(span-1) { |span2| # inner loops
           k.upto((k+span)-span2) { |l|
 
             if passive_chart.has active_item.rhs[active_item.dot].symbol, l, l+span2
               if l == active_item.span.right
                 new_item = Item.new active_item, active_item.span.left, l+span2, active_item.dot+1
-                scan new_item, input, k+span, passive_chart
-                if new_item.dot == new_item.rhs.size # done with item
-                  if new_item.span.left == k && new_item.span.right == k+span
-                    passive_chart.add k, k+span, new_item
-                  end
-                else
-                  if new_item.rhs[new_item.dot].class == NT && new_item.span.right+(new_item.rhs.size-(new_item.dot)) <= k+span
-                    active_chart.at(k,k+span) << new_item
+                if scan new_item, input, k+span, passive_chart
+                  if new_item.dot == new_item.rhs.size # done with item -> passive chart
+                    if new_item.span.left == k && new_item.span.right == k+span
+                      passive_chart.add new_item, k, k+span
+                    end
+                  else
+                    if new_item.rhs[new_item.dot].class == NT
+                      if new_item.span.right+(new_item.rhs.size-(new_item.dot)) <= k+span
+                        active_chart.at(k,k+span) << new_item
+                      end
+                    end
                   end
                 end
               end
@@ -121,6 +122,7 @@ def parse input, n, active_chart, passive_chart, grammar
       }
 
       # 'self-filling' step
+      # FIXME slow!
       passive_chart.at(k,k+span).each { |passive_item|
         active_chart.at(k,k+span).each { |active_item|
           next if active_item.rhs[active_item.dot].class!=NT
@@ -130,9 +132,9 @@ def parse input, n, active_chart, passive_chart, grammar
             scan new_item, input, k+span, passive_chart
             if new_item.dot == new_item.rhs.size
               if new_item.span.left == k && new_item.span.right == k+span
-                passive_chart.add k, k+span, new_item
+                passive_chart.add new_item, k, k+span
               else
-                puts "#{new_item}" # FIXME never happens
+                puts "#{new_item}"
               end
             else
               if new_item.rhs[new_item.dot].class == NT && new_item.span.right+(new_item.rhs.size-(new_item.dot)) <= k+span
@@ -143,6 +145,7 @@ def parse input, n, active_chart, passive_chart, grammar
           end
         }
       }
+
     }
   }
 end
@@ -157,17 +160,28 @@ def visit n, depth, skip=0 # FIXME
 end
 
 def main
+  STDERR.write "> reading input from TODO\n"
   #input = 'ich sah ein kleines haus'.split
-  input = 'lebensmittel schuld an europäischer inflation'.split
-  #input = 'offizielle prognosen sind von nur 3 prozent ausgegangen , meldete bloomberg .'.split
+  #input = 'lebensmittel schuld an europäischer inflation'.split
+  input = 'offizielle prognosen sind von nur 3 prozent ausgegangen , meldete bloomberg .'.split
   n = input.size
-  grammar = Grammar.new 'example/grammar.x'
+
+  STDERR.write "> reading grammar\n"
+  grammar = Grammar.new 'example/grammar.3.gz'
+  STDERR.write ">> adding glue grammar\n"
   grammar.add_glue_rules
+  STDERR.write ">> adding pass-through grammar\n"
+  #grammar.add_pass_through_rules input
+  
+  STDERR.write "> initializing charts\n"
   passive_chart = Chart.new n
   active_chart = Chart.new n
   init input, n, active_chart, passive_chart, grammar
+
+  STDERR.write "> parsing\n"
   parse input, n, active_chart, passive_chart, grammar
-  puts "---\npassive chart"
+
+  puts "\n---\npassive chart"
   visit(n, n, 0) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts ' '+item.to_s }; puts }
 end
 

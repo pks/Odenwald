@@ -41,18 +41,18 @@ class Rule
   end
 
   def arity
-    rhs.reject { |i| i.class==T }.size
+    rhs.select { |i| i.class == NT }.size
   end
 
   def from_s s
     _ = splitpipe s, 3
     @lhs = NT.new _[0].strip.gsub!(/(\[|\])/, "")
-    _[1].split.each { |i|
-      i.strip!
-      if i[0]=='[' && i[i.size-1] == ']'
-        @rhs << NT.new(i.gsub!(/(\[|\])/, "").split(',')[0])
+    _[1].split.each { |x|
+      x.strip!
+      if x[0]=='[' && x[x.size-1] == ']'
+        @rhs << NT.new(x.gsub!(/(\[|\])/, "").split(',')[0])
       else
-        @rhs << T.new(i)
+        @rhs << T.new(x)
       end
     }
   end
@@ -60,26 +60,25 @@ class Rule
   def self.from_s s
     r = self.new
     r.from_s s
-    r
+    return r
   end
 end
 
 class Grammar
-  attr_accessor :rules, :rewrite, :flat, :mixed
+  attr_accessor :rules, :startn, :startt, :flat
 
   def initialize fn
-    @rules = []; @rewrite = []; @flat = []; @mixed = []
+    @rules = []; @startn = []; @startt = [] ;@flat = []
     ReadFile.readlines_strip(fn).each_with_index { |s,i|
-      STDERR.write '.'
-      STDERR.write "\n" if (i+1)%80==0
+      STDERR.write '.'; STDERR.write "\n" if (i+1)%80==0
       @rules << Rule.from_s(s)
       if @rules.last.rhs.first.class == NT
-        @rewrite << @rules.last
+        @startn << @rules.last
       else
         if rules.last.arity == 0
           @flat << @rules.last
         else
-          @mixed << @rules.last
+          @startt << @rules.last
         end
       end
     }
@@ -89,21 +88,21 @@ class Grammar
   def to_s
     s = ''
     @rules.each { |r| s += r.to_s+"\n" }
-    s
+    return s
   end
 
   def add_glue_rules
-    @rules.map { |r| r.lhs.symbol }.reject { |s| s=='S' }.uniq.each { |s|
-      @rules << Rule.new(NT.new('S'), [NT.new(s)])
-      @rewrite << @rules.last
+    @rules.map { |r| r.lhs.symbol }.select { |s| s != 'S' }.uniq.each { |symbol|
+      @rules << Rule.new(NT.new('S'), [NT.new(symbol)])
+      @startn << @rules.last
       @rules << Rule.new(NT.new('S'), [NT.new('S'), NT.new('X')])
-      @rewrite << @rules.last
+      @startn << @rules.last
     }
   end
 
-  def add_pass_through_rules input
-    input.each { |terminal|
-      @rules << Rule.new(NT.new('X'), [T.new(terminal.word)])
+  def add_pass_through_rules s
+    s.each { |word|
+      @rules << Rule.new(NT.new('X'), [T.new(word)])
       @flat << @rules.last
     }
   end
