@@ -68,7 +68,8 @@ end
 
 def init active_chart, passive_chart, grammar, input, n
   # pre-fill passive chart w/ 0-arity rules
-  grammar.rules.select { |r| r.rhs.first.class==T }.each { |r|
+  #grammar.rules.select { |r| r.rhs.first.class==T }.each { |r|
+  grammar.rules.select { |r| r.arity==0 }.each { |r|
     input.each_index.select { |i| input[i].word==r.rhs.first.word }.each { |j|
       k = 1
       if r.rhs.size > 1
@@ -86,16 +87,16 @@ def init active_chart, passive_chart, grammar, input, n
       end
       if k == r.rhs.size
         passive_chart.add(r, j, j+k, j+k, k)
-      else
-        (j+k).upto(n) { |l| active_chart.add r, j, l, j+k, k }
+      #else
+      #  (j+k).upto(n) { |l| active_chart.add r, j, l, j+k, k }
       end
     }
   }
   # seed active chart
-  s = grammar.rules.reject { |r| r.rhs.first.class!=NT }
-  visit(n, n, 1) { |i,j|
-    s.each { |r| active_chart.add(r, i, j, i) }
-  }
+  #s = grammar.rules.reject { |r| r.rhs.first.class!=NT }
+  #visit(n, n, 1) { |i,j|
+  #  s.each { |r| active_chart.add(r, i, j, i) }
+  #}
 end
 
 def scan item, passive_chart, input
@@ -111,11 +112,19 @@ def scan item, passive_chart, input
   end
 end
 
-def parse i, j, n, active_chart, passive_chart, input
-  active_chart.at(i,j).each { |active_item|
+def parse i, j, n, active_chart, passive_chart, input, grammar
+  grammar.rules.each { |r|
+    if r.rhs.first.class==T&&r.rhs.first.word==input[i].word
+      new_item = Item.new r
+      scan new_item, passive_chart, input
+    end
+  }
+  #active_chart.at(i,j).each { |active_item|
     1.upto(n) { |span|
       break if span==(j-i)
       i.upto(j-span) { |k|
+        STDERR.write " #{k},#{k+span}\n"
+        <<-DOC
         passive_chart.at(k, k+span).each { |passive_item|
           if active_item.rhs[active_item.dot].class==NT && passive_item.lhs.symbol == active_item.rhs[active_item.dot].symbol
             next if not active_item.span.right==passive_item.span.left
@@ -131,10 +140,10 @@ def parse i, j, n, active_chart, passive_chart, input
             end
           end
         }
+        DOC
       }
     }
-    true
-  }
+  #}
   # self-filling
   to_add_active = []
   to_add_passive = []
@@ -164,14 +173,14 @@ def preprocess s
 end
 
 def main
-  #input = preprocess 'ich sah ein kleines haus'
-  input = preprocess 'lebensmittel schuld an europäischer inflation'
+  input = preprocess 'ich sah ein kleines haus'
+  #input = preprocess 'lebensmittel schuld an europäischer inflation'
   #input = preprocess 'offizielle prognosen sind von nur 3 prozent ausgegangen , meldete bloomberg .'
   n = input.size
 
   puts 'reading grammar'
-  #g = Grammar.new 'example/grammar'
-  g = Grammar.new 'example/grammar.x'
+  g = Grammar.new 'example/grammar'
+  #g = Grammar.new 'example/grammar.x'
   #g = Grammar.new 'example/grammar.3.gz' # 4th segment of newstest2008
 
   puts 'adding glue rules'
@@ -187,12 +196,12 @@ def main
 
   puts 'parsing'
   visit(n, n, 1) { |i,j|
-    STDERR.write " span (#{i}, #{j})\n"
-    parse i, j, n, active_chart, passive_chart, input
+    STDERR.write "span (#{i}, #{j})\n"
+    parse i, j, n, active_chart, passive_chart, input, g
   }
 
-  puts "---\npassive chart"
-  visit(n, n, 0) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts ' '+item.to_s if item.span.left==i&&item.span.right==j }; puts }
+  #puts "---\npassive chart"
+  #visit(n, n, 0) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts ' '+item.to_s if item.span.left==i&&item.span.right==j }; puts }
 end
 
 

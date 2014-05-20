@@ -65,15 +65,23 @@ class Rule
 end
 
 class Grammar
-  attr_accessor :rules
+  attr_accessor :rules, :rewrite, :flat, :mixed
 
   def initialize fn
-    @rules = []
-    @glue_rules = []
-    ReadFile.readlines_strip(fn).each_with_index { |s,j|
+    @rules = []; @rewrite = []; @flat = []; @mixed = []
+    ReadFile.readlines_strip(fn).each_with_index { |s,i|
       STDERR.write '.'
-      STDERR.write "\n" if (j+1)%80==0
+      STDERR.write "\n" if (i+1)%80==0
       @rules << Rule.from_s(s)
+      if @rules.last.rhs.first.class == NT
+        @rewrite << @rules.last
+      else
+        if rules.last.arity == 0
+          @flat << @rules.last
+        else
+          @mixed << @rules.last
+        end
+      end
     }
     STDERR.write "\n"
   end
@@ -85,18 +93,18 @@ class Grammar
   end
 
   def add_glue_rules
-    # see https://github.com/jweese/thrax/wiki/Glue-grammar
     @rules.map { |r| r.lhs.symbol }.reject { |s| s=='S' }.uniq.each { |s|
       @rules << Rule.new(NT.new('S'), [NT.new(s)])
-      @glue_rules << @rules.last
+      @rewrite << @rules.last
       @rules << Rule.new(NT.new('S'), [NT.new('S'), NT.new('X')])
-      @glue_rules << @rules.last
+      @rewrite << @rules.last
     }
   end
 
   def add_pass_through_rules input
     input.each { |terminal|
       @rules << Rule.new(NT.new('X'), [T.new(terminal.word)])
+      @flat << @rules.last
     }
   end
 end
