@@ -1,3 +1,6 @@
 nothing to see here
-https://github.com/jweese/thrax/wiki/Glue-grammar
+(SCFG machine translation decoder in ruby, currently implements CKY+ parsing and hypergraph viterbi)
+
+helpful stuff
+ * https://github.com/jweese/thrax/wiki/Glue-grammar
 
