@@ -77,7 +77,16 @@ def scan item, input, limit, passive_chart
   return true
 end
 
+def visit i, l, r, x=1
+  i.upto(r-x) { |span|
+    l.upto(r-span) { |k|
+      yield k, k+span
+    }
+  }
+end
+
 def parse input, n, active_chart, passive_chart, grammar
+  #visit(2, 0, 5) { |i,j|
   2.upto(n) { |span| # outer loops
     0.upto(n-span) { |k|
 
@@ -96,6 +105,7 @@ def parse input, n, active_chart, passive_chart, grammar
       }
 
       active_chart.at(k,k+span).each { |active_item|
+        #visit(1, k, k+span) { |k,l|
         1.upto(span-1) { |span2| # inner loops
           k.upto((k+span)-span2) { |l|
 
@@ -150,24 +160,15 @@ def parse input, n, active_chart, passive_chart, grammar
   }
 end
 
-def visit n, depth, skip=0 # FIXME
-  (depth-skip).times { |i|
-    i += skip
-    0.upto(n-(i+1)) { |j|
-      yield j, j+i+1
-    }
-  }
-end
-
 def main
   STDERR.write "> reading input from TODO\n"
-  #input = 'ich sah ein kleines haus'.split
+  input = 'ich sah ein kleines haus'.split
   #input = 'lebensmittel schuld an europäischer inflation'.split
-  input = 'offizielle prognosen sind von nur 3 prozent ausgegangen , meldete bloomberg .'.split
+  #input = 'offizielle prognosen sind von nur 3 prozent ausgegangen , meldete bloomberg .'.split
   n = input.size
 
   STDERR.write "> reading grammar\n"
-  grammar = Grammar.new 'example/grammar.3.gz'
+  grammar = Grammar.new 'example/grammar'
   STDERR.write ">> adding glue grammar\n"
   grammar.add_glue_rules
   STDERR.write ">> adding pass-through grammar\n"
@@ -182,7 +183,7 @@ def main
   parse input, n, active_chart, passive_chart, grammar
 
   puts "\n---\npassive chart"
-  visit(n, n, 0) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts ' '+item.to_s }; puts }
+  visit(1, 0, 5, 0) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts ' '+item.to_s }; puts }
 end
 
 

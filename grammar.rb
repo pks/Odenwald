@@ -70,7 +70,7 @@ class Grammar
   def initialize fn
     @rules = []; @startn = []; @startt = [] ;@flat = []
     ReadFile.readlines_strip(fn).each_with_index { |s,i|
-      STDERR.write '.'; STDERR.write "\n" if (i+1)%80==0
+      STDERR.write '.'; STDERR.write " #{i+1}\n" if (i+1)%80==0
       @rules << Rule.from_s(s)
       if @rules.last.rhs.first.class == NT
         @startn << @rules.last
