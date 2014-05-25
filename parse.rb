@@ -42,9 +42,18 @@ class Item < Rule
   attr_accessor :lhs, :rhs, :dot
 
   def initialize rule_or_item, left, right, dot
-    @lhs = rule_or_item.lhs.dup
-    @rhs = rule_or_item.rhs.dup
+    @lhs = NT.new rule_or_item.lhs.symbol
     @lhs.span = Span.new left, right
+    @rhs = []
+    rule_or_item.rhs.each { |x|
+      if x.class == T
+        @rhs << T.new(x.word)
+      end
+      if x.class == NT
+        @rhs << NT.new(x.symbol)
+        @rhs.last.span = Span.new x.span.left, x.span.right
+      end
+    }
     @dot = dot
   end
 
