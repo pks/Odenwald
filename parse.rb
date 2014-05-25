@@ -42,7 +42,7 @@ class Item < Rule
   attr_accessor :lhs, :rhs, :dot
 
   def initialize rule_or_item, left, right, dot
-    @lhs = rule_or_item.lhs
+    @lhs = rule_or_item.lhs.dup
     @rhs = rule_or_item.rhs.dup
     @lhs.span = Span.new left, right
     @dot = dot
@@ -111,6 +111,7 @@ def parse input, n, active_chart, passive_chart, grammar
         if passive_chart.has active_item.rhs[active_item.dot].symbol, k, l
           if k == active_item.lhs.span.right
             new_item = Item.new active_item, active_item.lhs.span.left, l, active_item.dot+1
+            new_item.rhs[new_item.dot-1].span = Span.new k, l
             if scan new_item, input, j, passive_chart
               if new_item.dot == new_item.rhs.size
                 if new_item.lhs.span.left == i && new_item.lhs.span.right == j
@@ -140,6 +141,7 @@ def parse input, n, active_chart, passive_chart, grammar
         next if active_item.rhs[active_item.dot].class!=NT
         if active_item.rhs[active_item.dot].symbol == s
           new_item = Item.new active_item, i, j, active_item.dot+1
+          new_item.rhs[new_item.dot-1].span = Span.new i, j
           new_symbols << new_item.lhs.symbol if !new_symbols.include? new_item.lhs.symbol
           passive_chart.add new_item, i, j if new_item.dot==new_item.rhs.size
         end
