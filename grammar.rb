@@ -14,15 +14,16 @@ class T
 end
 
 class NT
-  attr_accessor :symbol, :index
+  attr_accessor :symbol, :index, :span
 
   def initialize symbol, index=0
     @symbol = symbol
     @index = index
+    @span = Span.new
   end
 
   def to_s
-    "NT<#{@symbol},#{@index}>"
+    "NT(#{@span.left},#{@span.right})<#{@symbol},#{@index}>"
   end
 end
 
