@@ -145,14 +145,17 @@ def parse input, n, active_chart, passive_chart, grammar
 
     # 'self-filling' step
     new_symbols.each { |s|
+      puts new_symbols.to_s if i==2&&j==5
       remaining_items.each { |active_item|
         next if active_item.dot!=0
         next if active_item.rhs[active_item.dot].class!=NT
         if active_item.rhs[active_item.dot].symbol == s
           new_item = Item.new active_item, i, j, active_item.dot+1
           new_item.rhs[new_item.dot-1].span = Span.new i, j
-          new_symbols << new_item.lhs.symbol if !new_symbols.include? new_item.lhs.symbol
-          passive_chart.add new_item, i, j if new_item.dot==new_item.rhs.size
+          if new_item.dot==new_item.rhs.size
+            new_symbols << new_item.lhs.symbol if !new_symbols.include? new_item.lhs.symbol
+            passive_chart.add new_item, i, j
+          end
         end
       }
     }
