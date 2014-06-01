@@ -4,3 +4,8 @@ nothing to see here
 helpful stuff
  * https://github.com/jweese/thrax/wiki/Glue-grammar
 
+todo
+ * animate?
+ * to json
+ * integrate with HG
+

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative './grammar.rb'
+require 'nlp_ruby'
 
 
 class Chart
@@ -29,36 +29,28 @@ class Chart
   end
 end
 
-class Span
-  attr_accessor :left, :right
-
-  def initialize left=nil, right=nil
-    @left = left
-    @right = right
-  end
-end
-
-class Item < Rule
-  attr_accessor :lhs, :rhs, :dot
+class Item < Grammar::Rule
+  attr_accessor :lhs, :rhs, :dot, :e
 
   def initialize rule_or_item, left, right, dot
-    @lhs = NT.new rule_or_item.lhs.symbol
-    @lhs.span = Span.new left, right
+    @lhs = Grammar::NT.new rule_or_item.lhs.symbol
+    @lhs.span = Grammar::Span.new left, right
     @rhs = []
     rule_or_item.rhs.each { |x|
-      if x.class == T
-        @rhs << T.new(x.word)
+      if x.class == Grammar::T
+        @rhs << Grammar::T.new(x.word)
       end
-      if x.class == NT
-        @rhs << NT.new(x.symbol)
-        @rhs.last.span = Span.new x.span.left, x.span.right
+      if x.class == Grammar::NT
+        @rhs << Grammar::NT.new(x.symbol)
+        @rhs.last.span = Grammar::Span.new x.span.left, x.span.right
       end
     }
     @dot = dot
+    @e = rule_or_item.e
   end
 
   def to_s
-    "#{lhs} -> #{rhs.map{|i|i.to_s}.insert(@dot,'*').join ' '} [dot@#{@dot}] [arity=#{arity}] (#{@lhs.span.left}, #{@lhs.span.right})"
+    "#{lhs} -> #{rhs.map{|i|i.to_s}.insert(@dot,'*').join ' '} [dot@#{@dot}] [arity=#{arity}] (#{@lhs.span.left}, #{@lhs.span.right}) ||| #{@e}"
   end
 end
 
@@ -73,7 +65,7 @@ def init input, n, active_chart, passive_chart, grammar
 end
 
 def scan item, input, limit, passive_chart
-  while item.rhs[item.dot].class == T
+  while item.rhs[item.dot].class == Grammar::T
     return false if item.lhs.span.right==limit
     if item.rhs[item.dot].word == input[item.lhs.span.right]
       item.dot += 1
@@ -120,7 +112,7 @@ def parse input, n, active_chart, passive_chart, grammar
         if passive_chart.has active_item.rhs[active_item.dot].symbol, k, l
           if k == active_item.lhs.span.right
             new_item = Item.new active_item, active_item.lhs.span.left, l, active_item.dot+1
-            new_item.rhs[new_item.dot-1].span = Span.new k, l
+            new_item.rhs[new_item.dot-1].span = Grammar::Span.new k, l
             if scan new_item, input, j, passive_chart
               if new_item.dot == new_item.rhs.size
                 if new_item.lhs.span.left == i && new_item.lhs.span.right == j
@@ -145,13 +137,12 @@ def parse input, n, active_chart, passive_chart, grammar
 
     # 'self-filling' step
     new_symbols.each { |s|
-      puts new_symbols.to_s if i==2&&j==5
       remaining_items.each { |active_item|
         next if active_item.dot!=0
-        next if active_item.rhs[active_item.dot].class!=NT
+        next if active_item.rhs[active_item.dot].class!=Grammar::NT
         if active_item.rhs[active_item.dot].symbol == s
           new_item = Item.new active_item, i, j, active_item.dot+1
-          new_item.rhs[new_item.dot-1].span = Span.new i, j
+          new_item.rhs[new_item.dot-1].span = Grammar::Span.new i, j
           if new_item.dot==new_item.rhs.size
             new_symbols << new_item.lhs.symbol if !new_symbols.include? new_item.lhs.symbol
             passive_chart.add new_item, i, j
@@ -165,13 +156,13 @@ end
 
 def main
   STDERR.write "> reading input from TODO\n"
-  input = 'ich sah ein kleines haus'.split
+  #input = 'ich sah ein kleines haus'.split
   #input = 'lebensmittel schuld an europäischer inflation'.split
-  #input = 'offizielle prognosen sind von nur 3 prozent ausgegangen , meldete bloomberg .'.split
+  input = 'offizielle prognosen sind von nur 3 prozent ausgegangen , meldete bloomberg .'.split
   n = input.size
 
   STDERR.write "> reading grammar\n"
-  grammar = Grammar.new 'example/grammarx'
+  grammar = Grammar::Grammar.new 'example/grammar.3.gz'
   STDERR.write ">> adding glue grammar\n"
   #grammar.add_glue_rules
   STDERR.write ">> adding pass-through grammar\n"
