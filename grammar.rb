@@ -13,73 +13,79 @@ class T
 end
 
 class NT
-  attr_accessor :symbol, :index, :span
+  attr_accessor :symbol, :index, :left, :right
 
-  def initialize symbol, index=0
+  def initialize symbol=nil, index=nil, left=nil, right=nil
     @symbol = symbol
     @index = index
-    @span = Span.new
+    @left = left
+    @right = right
+  end
+
+  def from_s s
+    s.delete! '[]'
+    @symbol, meta = s.split '@'
+    span, index = meta.split ','
+    @left, @right = span.split(':').map { |x| x.to_i }
+    @index = index.to_i if index
+  end
+
+  def self.from_s s
+    n = NT.new
+    n.from_s s
+    return n
   end
 
   def to_s
-    "NT(#{@span.left},#{@span.right})<#{@symbol},#{@index}>"
+    "NT(#{@left},#{@right})<#{@symbol},#{@index}>"
   end
 end
 
 class Rule
-  attr_accessor :lhs, :rhs, :e
+  attr_accessor :lhs, :rhs, :target, :map
 
-  def initialize lhs=nil, rhs=[], e='', span=nil
+  def initialize lhs=nil, rhs=[], left=nil, right=nil, target=[]
     @lhs = lhs
     @rhs = rhs
-    @e = e
-    @lhs.span = span if span
+    @lhs.left = left if lhs
+    @lhs.right = right if lhs
+    @target = target
+    @arity_ = nil
   end
 
   def to_s
-    "#{lhs} -> #{rhs.map{ |i| i.to_s }.join ' '} [arity=#{arity}] ||| #{@e}"
+    "#{@lhs} -> #{@rhs.map{ |i| i.to_s }.join ' '} ||| #{@target.map{ |i| i.to_s }.join ' '} [arity=#{arity}]" #FIXME
   end
 
   def arity
-    rhs.select { |i| i.class == NT }.size
+    return @arity_ if @arity_
+    return rhs.select { |i| i.class == NT }.size
   end
 
-  def from_s s, tail_spans=nil
-    nt_dict = {}
-    tail_spans.split(';').each { |i|
-      symbol, idx, span = i.split('|||')
-      nt_dict[idx.to_i] = span.gsub('(','').gsub(')','').split(',').map{|i|i.to_i}
-    }
-    _ = splitpipe s, 3
-    @lhs = NT.new _[0].strip.gsub!(/(\[|\])/, "")
-    q = 0
-    _[1].split.each { |x|
+  def read_right_ s
+    a = []
+    s.split.each { |x|
       x.strip!
       if x[0]=='[' && x[x.size-1] == ']'
-        @rhs << NT.new(x.gsub!(/(\[|\])/, "").split(',')[0])
-        @rhs.last.span.left = nt_dict[q][0]
-        @rhs.last.span.right = nt_dict[q][1]
-        q += 1
+        a << NT.from_s(x)
       else
-        @rhs << T.new(x)
+        a << T.new(x)
       end
     }
-    @e = _[2]
+    return a
   end
 
-  def self.from_s s, tail_spans=nil
+  def from_s s
+    lhs, rhs, target = splitpipe s, 3
+    @lhs = NT.from_s lhs
+    @rhs = read_right_ rhs
+    @target = read_right_ target
+  end
+
+  def self.from_s s
     r = self.new
-    r.from_s s, tail_spans
+    r.from_s s
     return r
-  end
-end
-
-class Span
-  attr_accessor :left, :right
-
-  def initialize left=nil, right=nil
-    @left = left
-    @right = right
   end
 end
 

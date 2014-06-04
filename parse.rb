@@ -162,7 +162,7 @@ def main
   n = input.size
 
   STDERR.write "> reading grammar\n"
-  grammar = Grammar::Grammar.new 'example/grammar.3.gz'
+  grammar = Grammar::Grammar.new 'example/grammars/grammar.3.gz'
   STDERR.write ">> adding glue grammar\n"
   #grammar.add_glue_rules
   STDERR.write ">> adding pass-through grammar\n"
