@@ -25,9 +25,11 @@ class NT
   def from_s s
     s.delete! '[]'
     @symbol, meta = s.split '@'
-    span, index = meta.split ','
-    @left, @right = span.split(':').map { |x| x.to_i }
-    @index = index.to_i if index
+    if meta
+      span, index = meta.split ','
+      @left, @right = span.split(':').map { |x| x.to_i }
+      @index = index.to_i
+    end
   end
 
   def self.from_s s
@@ -44,11 +46,9 @@ end
 class Rule
   attr_accessor :lhs, :rhs, :target, :map
 
-  def initialize lhs=nil, rhs=[], left=nil, right=nil, target=[]
+  def initialize lhs=nil, rhs=[], target=[]
     @lhs = lhs
     @rhs = rhs
-    @lhs.left = left if lhs
-    @lhs.right = right if lhs
     @target = target
     @arity_ = nil
   end
@@ -59,20 +59,20 @@ class Rule
 
   def arity
     return @arity_ if @arity_
-    return rhs.select { |i| i.class == NT }.size
+    rhs.select { |i| i.class == NT }.size
   end
 
   def read_right_ s
-    a = []
+    _ = []
     s.split.each { |x|
       x.strip!
       if x[0]=='[' && x[x.size-1] == ']'
-        a << NT.from_s(x)
+        _ << NT.from_s(x)
       else
-        a << T.new(x)
+        _ << T.new(x)
       end
     }
-    return a
+    return _
   end
 
   def from_s s
@@ -93,7 +93,7 @@ class Grammar
   attr_accessor :rules, :startn, :startt, :flat
 
   def initialize fn
-    @rules = []; @startn = []; @startt = [] ;@flat = []
+    @rules = []; @startn = []; @startt = []; @flat = []
     ReadFile.readlines_strip(fn).each_with_index { |s,i|
       STDERR.write '.'; STDERR.write " #{i+1}\n" if (i+1)%80==0
       @rules << Rule.from_s(s)

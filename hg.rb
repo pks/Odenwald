@@ -13,7 +13,6 @@ class HG::Node
 
   def initialize id=nil, cat=nil, outgoing=[], incoming=[], score=nil
     @id       = id 
-    @cat      = cat
     @outgoing = outgoing
     @incoming = incoming
     @score    = nil
@@ -46,12 +45,12 @@ class HG::Hypergraph
 end
 
 class HG::Hyperedge
-  attr_accessor :head, :tails, :weight, :f, :mark, :rule
+  attr_accessor :head, :tails, :score, :f, :mark, :rule
 
-  def initialize head=nil, tails=[], weight=0.0, f=SparseVector.new, rule=nil
+  def initialize head=nil, tails=[], score=0.0, f=SparseVector.new, rule=nil
     @head   = head
     @tails  = tails
-    @weight = weight
+    @score  = score
     @f      = f
     @mark   = 0
     @rule   = Grammar::Rule.from_s rule if rule
@@ -66,7 +65,7 @@ class HG::Hyperedge
   end
 
   def to_s
-    "Hyperedge<head:\"#{@head.id}\", rule:\"#{@rule.to_s}, \"tails:#{@tails.map{|n|n.id}}, arity:#{arity}, weight:#{@weight}, f:#{f.to_s}, mark:#{@mark}>"
+    "Hyperedge<head:\"#{@head.id}\", rule:\"#{@rule.to_s}, \"tails:#{@tails.map{|n|n.id}}, arity:#{arity}, score:#{@score}, f:#{f.to_s}, mark:#{@mark}>"
   end
 end
 
@@ -98,7 +97,7 @@ def HG::viterbi hypergraph, root, semiring=ViterbiSemiring.new
       e.tails.each { |m|
         s = semiring.multiply.call(s, m.score)
       }
-      n.score = semiring.add.call(n.score, semiring.multiply.call(s, e.weight))
+      n.score = semiring.add.call(n.score, semiring.multiply.call(s, e.score))
     }
   }
 end
@@ -114,10 +113,10 @@ def HG::viterbi_path hypergraph, root, semiring=ViterbiSemiring.new
       e.tails.each { |m|
         s = semiring.multiply.call(s, m.score)
       }
-      if n.score < semiring.multiply.call(s, e.weight) # ViterbiSemiring add
+      if n.score < semiring.multiply.call(s, e.score) # ViterbiSemiring add
         best_edge = e
       end
-      n.score = semiring.add.call(n.score, semiring.multiply.call(s, e.weight))
+      n.score = semiring.add.call(n.score, semiring.multiply.call(s, e.score))
     }
     best_path << best_edge if best_edge
   }
@@ -135,10 +134,10 @@ def HG::viterbi_string hypergraph, root, semiring=ViterbiSemiring.new
       e.tails.each { |m|
         s = semiring.multiply.call(s, m.score)
       }
-      if n.score < semiring.multiply.call(s, e.weight) # ViterbiSemiring add
+      if n.score < semiring.multiply.call(s, e.score) # ViterbiSemiring add
         best_s = e.e
       end
-      n.score = semiring.add.call(n.score, semiring.multiply.call(s, e.weight))
+      n.score = semiring.add.call(n.score, semiring.multiply.call(s, e.score))
     }
     s += best_s if best_s
   }
@@ -169,14 +168,14 @@ def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=fal
   h = JSON.parse File.new(fn).read
   w = SparseVector.from_h h['weights']
   h['nodes'].each { |x|
-    n = Node.new x['id'], x['cat']
+    n = Node.new x['id']
     nodes << n
     nodes_by_id[n.id] = n
   }
   h['edges'].each { |x|
     e = Hyperedge.new(nodes_by_id[x['head']], \
                       x['tails'].map { |j| nodes_by_id[j] }.to_a, \
-                      (x['weight'] ? semiring.convert.call(x['weight'].to_f) : nil), \
+                      (x['score'] ? semiring.convert.call(x['score'].to_f) : nil), \
                       (x['f'] ? SparseVector.from_h(x['f']) : nil), \
                       x['rule'])
     if x['f']
