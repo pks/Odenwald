@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'nlp_ruby'
-require 'json'
 require_relative 'grammar'
 
 
@@ -9,7 +8,7 @@ module HG
 
 
 class HG::Node
-  attr_accessor :id, :cat, :outgoing, :incoming, :score
+  attr_accessor :id, :outgoing, :incoming, :score
 
   def initialize id=nil, cat=nil, outgoing=[], incoming=[], score=nil
     @id       = id 
@@ -19,7 +18,7 @@ class HG::Node
   end
 
   def to_s
-    "Node<id:#{@id}, cat:\"#{@cat}\", outgoing:#{@outgoing.size}, incoming:#{@incoming.size}>"
+    "Node<id:#{@id}, outgoing:#{@outgoing.size}, incoming:#{@incoming.size}>"
   end
 end
 
@@ -27,12 +26,14 @@ class HG::Hypergraph
   attr_accessor :nodes, :edges
 
   def initialize nodes=[], edges=[]
-    @nodes = nodes
-    @edges = edges
+    @nodes  = nodes
+    @edges  = edges
+    @arity_ = nil
   end
 
   def arity
-    @edges.map { |e| e.arity }.max
+    @arity_ = @edges.map { |e| e.arity }.max if !@arity_
+    return @arity_
   end
 
   def reset
@@ -40,7 +41,7 @@ class HG::Hypergraph
   end
 
   def to_s
-    "Hypergraph<nodes:[#{@nodes.to_s}], edges:[#{@edges.to_s}], arity:#{arity}>"
+    "Hypergraph<nodes:#{@nodes.size}, edges:#{@edges.size}, arity:#{arity}>"
   end
 end
 
@@ -53,7 +54,7 @@ class HG::Hyperedge
     @score  = score
     @f      = f
     @mark   = 0
-    @rule   = Grammar::Rule.from_s rule if rule
+    @rule   = (rule ? Grammar::Rule.from_s(rule) : nil)
   end
 
   def arity

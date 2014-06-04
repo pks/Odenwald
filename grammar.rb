@@ -17,9 +17,9 @@ class NT
 
   def initialize symbol=nil, index=nil, left=nil, right=nil
     @symbol = symbol
-    @index = index
-    @left = left
-    @right = right
+    @index  = index
+    @left   = left
+    @right  = right
   end
 
   def from_s s
@@ -47,19 +47,19 @@ class Rule
   attr_accessor :lhs, :rhs, :target, :map
 
   def initialize lhs=nil, rhs=[], target=[]
-    @lhs = lhs
-    @rhs = rhs
+    @lhs    = lhs
+    @rhs    = rhs
     @target = target
     @arity_ = nil
   end
 
   def to_s
-    "#{@lhs} -> #{@rhs.map{ |i| i.to_s }.join ' '} ||| #{@target.map{ |i| i.to_s }.join ' '} [arity=#{arity}]" #FIXME
+    "#{@lhs} -> #{@rhs.map{ |i| i.to_s }.join ' '} ||| #{@target.map{ |i| i.to_s }.join ' '} [arity=#{arity}]"
   end
 
   def arity
-    return @arity_ if @arity_
-    rhs.select { |i| i.class == NT }.size
+    @arity_ = rhs.select { |i| i.class == NT }.size if !@arity_
+    return @arity_
   end
 
   def read_right_ s
