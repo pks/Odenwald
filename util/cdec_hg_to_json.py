@@ -13,15 +13,16 @@ def hg2json(hg, weights):
   res += '"weights":{'+"\n"
   a = []
   for i in weights:
-    a.append( '"%s":%s'%(i[0], i[1]) )
+    if i[1] != 0:
+      a.append( '"%s":%s'%(i[0], i[1]) )
   res += ", ".join(a)+"\n"
   res += "},\n"
   res += '"nodes":'+"\n"
   res += "[\n"
   a = []
-  a.append( '{ "label":"root", "cat":"root" }' )
+  a.append( '{ "id":-1, "cat":"root", "span":[-1,-1] }' )
   for i in hg.nodes:
-    a.append( '{ "label":"%s", "cat":"%s", "left":%d, "right":%d }'%(i.id, i.cat, i.span[0], i.span[1]) )
+    a.append('{ "id":%d, "cat":"%s", "span":[%d,%d] }'%(i.id, i.cat, i.span[0], i.span[1]))
   res += ",\n".join(a)+"\n"
   res += "],\n"
   res += '"edges":'+"\n"
@@ -29,31 +30,20 @@ def hg2json(hg, weights):
   a = []
   for i in hg.edges:
     s = "{"
-    s += '"head":"%s"'%(i.head_node.id)
+    s += '"head":%d'%(i.head_node.id)
     s += ', "rule":"%s"'%(i.trule)
-    s += ', "left":%d'%(i.span[0])
-    s += ', "right":%d'%(i.span[1])
-    #s += ', "leftx":%d'%(i.src_span[0])
-    #s += ', "rightx":%d'%(i.src_span[1])
-    s += ', "spans":"'
-    q = 0
-    for z in i.tail_nodes:
-      s+= "%s|||%d|||(%d,%d);"%(z.cat, q, z.span[0], z.span[1])
-      q += 1
-    s += '"'
+    # f
     xs = ' "f":{'
     b = []
     for j in i.feature_values:
       b.append( '"%s":%s'%(j[0], j[1]) )
     xs += ", ".join(b)
     xs += "},"
-    c = []
-    for j in i.tail_nodes:
-      c.append( '"'+str(j.id)+'"' )
-    if len(c) > 0:
-      s += ', "tails":[ %s ],'%(",".join(c))
+    # tails
+    if len(list(i.tail_nodes)) > 0:
+      s += ', "tails":[ %s ],'%(",".join([str(n.id) for n in i.tail_nodes]))
     else:
-      s += ', "tails":[ "root" ],'
+      s += ', "tails":[ -1 ],'
     s += xs
     s += ' "weight":%s }'%(i.prob)
     a.append(s)

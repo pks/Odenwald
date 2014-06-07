@@ -8,17 +8,20 @@ module HG
 
 
 class HG::Node
-  attr_accessor :id, :outgoing, :incoming, :score
+  attr_accessor :id, :symbol, :left, :right, :outgoing, :incoming, :score
 
-  def initialize id=nil, cat=nil, outgoing=[], incoming=[], score=nil
-    @id       = id 
+  def initialize id=nil, symbol='', span=[-1,-1], outgoing=[], incoming=[], score=nil
+    @id       = id
+    @symbol   = symbol
+    @left     = span[0]
+    @right    = span[1]
     @outgoing = outgoing
     @incoming = incoming
-    @score    = nil
+    @score    = score
   end
 
   def to_s
-    "Node<id:#{@id}, outgoing:#{@outgoing.size}, incoming:#{@incoming.size}>"
+    "Node<id=#{@id}, symbol='#{symbol}', span=(#{@left},#{@right}), outgoing:#{@outgoing.size}, incoming:#{@incoming.size}>"
   end
 end
 
@@ -41,20 +44,20 @@ class HG::Hypergraph
   end
 
   def to_s
-    "Hypergraph<nodes:#{@nodes.size}, edges:#{@edges.size}, arity:#{arity}>"
+    "Hypergraph<nodes:#{@nodes.size}, edges:#{@edges.size}, arity=#{arity}>"
   end
 end
 
 class HG::Hyperedge
   attr_accessor :head, :tails, :score, :f, :mark, :rule
 
-  def initialize head=nil, tails=[], score=0.0, f=SparseVector.new, rule=nil
+  def initialize head=Node.new, tails=[], score=0.0, f=SparseVector.new, rule=nil
     @head   = head
     @tails  = tails
     @score  = score
     @f      = f
     @mark   = 0
-    @rule   = (rule ? Grammar::Rule.from_s(rule) : nil)
+    @rule   = (rule.class==String ? Grammar::Rule.from_s(rule) : rule)
   end
 
   def arity
@@ -66,7 +69,7 @@ class HG::Hyperedge
   end
 
   def to_s
-    "Hyperedge<head:\"#{@head.id}\", rule:\"#{@rule.to_s}, \"tails:#{@tails.map{|n|n.id}}, arity:#{arity}, score:#{@score}, f:#{f.to_s}, mark:#{@mark}>"
+    "Hyperedge<head=#{@head.id}, rule:'#{@rule.to_s}', tails=#{@tails.map{|n|n.id}}, arity=#{arity}, score=#{@score}, f=#{f.to_s}, mark=#{@mark}>"
   end
 end
 
@@ -124,27 +127,6 @@ def HG::viterbi_path hypergraph, root, semiring=ViterbiSemiring.new
   return best_path, toposorted.last.score
 end
 
-def HG::viterbi_string hypergraph, root, semiring=ViterbiSemiring.new
-  toposorted = topological_sort hypergraph.nodes
-  init toposorted, semiring, root
-  s = ''
-  toposorted.each { |n|
-    best_s = nil
-    n.incoming.each { |e|
-      s = semiring.one
-      e.tails.each { |m|
-        s = semiring.multiply.call(s, m.score)
-      }
-      if n.score < semiring.multiply.call(s, e.score) # ViterbiSemiring add
-        best_s = e.e
-      end
-      n.score = semiring.add.call(n.score, semiring.multiply.call(s, e.score))
-    }
-    s += best_s if best_s
-  }
-  return s, toposorted.last.score
-end
-
 def HG::all_paths hypergraph, root
   toposorted = topological_sort hypergraph.nodes
   paths = [[]]
@@ -162,6 +144,22 @@ def HG::all_paths hypergraph, root
   return paths
 end
 
+def HG::derive path, cur, carry
+  edge = path.select { |e|    e.head.symbol==cur.symbol \
+                           && e.head.left==cur.left \
+                           && e.head.right==cur.right }.first
+  j = 0
+  edge.rule.target.each { |i|
+    if i.class == Grammar::NT
+      derive path, edge.tails[j], carry
+      j += 1
+    else
+      carry << i
+    end
+  }
+  return carry
+end
+
 def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=false
   nodes = []
   edges = []
@@ -169,7 +167,7 @@ def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=fal
   h = JSON.parse File.new(fn).read
   w = SparseVector.from_h h['weights']
   h['nodes'].each { |x|
-    n = Node.new x['id']
+    n = Node.new x['id'], x['symbol'], x['span']
     nodes << n
     nodes_by_id[n.id] = n
   }
@@ -181,9 +179,9 @@ def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=fal
                       x['rule'])
     if x['f']
       if log_weights
-        e.weight = Math.exp(w.dot(e.f))
+        e.score = Math.exp(w.dot(e.f))
       else
-        e.weight = w.dot(e.f)
+        e.score = w.dot(e.f)
       end
     end
     e.tails.each { |m|
@@ -193,20 +191,6 @@ def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=fal
     edges << e
   }
   return Hypergraph.new(nodes, edges), nodes_by_id
-end
-
-def HG::derive path, cur, carry
-  edge = path.select { |e|    e.rule.lhs.symbol==cur.symbol \
-                           && e.rule.lhs.left==cur.left \
-                           && e.rule.lhs.right==cur.right }.first
-  edge.rule.target.each { |i|
-    if i.class == Grammar::NT
-      derive path, i, carry
-    else
-      carry << i
-    end
-  }
-  return carry
 end
 
 

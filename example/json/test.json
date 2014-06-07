@@ -1,33 +1,33 @@
 {
 "weights":{
-"PhraseModel_0":0.0, "PhraseModel_1":0.0, "PhraseModel_2":0.0, "PhraseModel_3":0.0, "PhraseModel_4":0.0, "PhraseModel_5":0.0, "PhraseModel_6":0.0, "PhraseModel_7":0.0, "PhraseModel_8":0.0, "PhraseModel_9":0.0, "PhraseModel_10":0.0, "PhraseModel_11":0.0, "PhraseModel_12":0.0, "PhraseModel_13":0.0, "PhraseModel_14":0.0, "PhraseModel_15":0.0, "PhraseModel_16":0.0, "PhraseModel_17":0.0, "PhraseModel_18":0.0, "PhraseModel_19":0.0, "PhraseModel_20":0.0, "PhraseModel_21":0.0, "PhraseModel_22":0.0, "PhraseModel_23":0.0, "PhraseModel_24":0.0, "PhraseModel_25":0.0, "PhraseModel_26":0.0, "PhraseModel_27":0.0, "PhraseModel_28":0.0, "PhraseModel_29":0.0, "PhraseModel_30":0.0, "PhraseModel_31":0.0, "PhraseModel_32":0.0, "PhraseModel_33":0.0, "PhraseModel_34":0.0, "PhraseModel_35":0.0, "PhraseModel_36":0.0, "PhraseModel_37":0.0, "PhraseModel_38":0.0, "PhraseModel_39":0.0, "PhraseModel_40":0.0, "PhraseModel_41":0.0, "PhraseModel_42":0.0, "PhraseModel_43":0.0, "PhraseModel_44":0.0, "PhraseModel_45":0.0, "PhraseModel_46":0.0, "PhraseModel_47":0.0, "PhraseModel_48":0.0, "PhraseModel_49":0.0, "PhraseModel_50":0.0, "PhraseModel_51":0.0, "PhraseModel_52":0.0, "PhraseModel_53":0.0, "PhraseModel_54":0.0, "PhraseModel_55":0.0, "PhraseModel_56":0.0, "PhraseModel_57":0.0, "PhraseModel_58":0.0, "PhraseModel_59":0.0, "PhraseModel_60":0.0, "PhraseModel_61":0.0, "PhraseModel_62":0.0, "PhraseModel_63":0.0, "PhraseModel_64":0.0, "PhraseModel_65":0.0, "PhraseModel_66":0.0, "PhraseModel_67":0.0, "PhraseModel_68":0.0, "PhraseModel_69":0.0, "PhraseModel_70":0.0, "PhraseModel_71":0.0, "PhraseModel_72":0.0, "PhraseModel_73":0.0, "PhraseModel_74":0.0, "PhraseModel_75":0.0, "PhraseModel_76":0.0, "PhraseModel_77":0.0, "PhraseModel_78":0.0, "PhraseModel_79":0.0, "PhraseModel_80":0.0, "PhraseModel_81":0.0, "PhraseModel_82":0.0, "PhraseModel_83":0.0, "PhraseModel_84":0.0, "PhraseModel_85":0.0, "PhraseModel_86":0.0, "PhraseModel_87":0.0, "PhraseModel_88":0.0, "PhraseModel_89":0.0, "PhraseModel_90":0.0, "PhraseModel_91":0.0, "PhraseModel_92":0.0, "PhraseModel_93":0.0, "PhraseModel_94":0.0, "PhraseModel_95":0.0, "PhraseModel_96":0.0, "PhraseModel_97":0.0, "PhraseModel_98":0.0, "PhraseModel_99":0.0, "logp":2.0, "use_i":0.0, "use_a":0.0, "use_house":15.0, "use_shell":1.0
+"logp":2.0, "use_shell":1.0
 },
 "nodes":
 [
-{ "id":-1 },
-{ "id":0  },
-{ "id":1  },
-{ "id":2  },
-{ "id":3  },
-{ "id":4  },
-{ "id":5  },
-{ "id":6  },
-{ "id":7  }
+{ "id":-1, "cat":"root", "span":[-1,-1] },
+{ "id":0, "cat":"NP", "span":[0,1] },
+{ "id":1, "cat":"V", "span":[1,2] },
+{ "id":2, "cat":"JJ", "span":[3,4] },
+{ "id":3, "cat":"NN", "span":[3,5] },
+{ "id":4, "cat":"NP", "span":[2,5] },
+{ "id":5, "cat":"VP", "span":[1,5] },
+{ "id":6, "cat":"S", "span":[0,5] },
+{ "id":7, "cat":"Goal", "span":[0,5] }
 ],
 "edges":
 [
-{"head":0, "rule":"[NP@0:1]   ||| ich                   ||| i                     ||| logp=-0.5 use_i=1.0",     "tails":[ -1 ],  "f":{"logp":-0.5, "use_i":1.0} },
-{"head":1, "rule":"[V@1:2]    ||| sah                   ||| saw                   ||| logp=-0.25 use_saw=1.0",  "tails":[ -1 ], "f":{"logp":-0.25, "use_saw":1.0} },
-{"head":2, "rule":"[JJ@3:4]   ||| kleines               ||| small                 ||| logp=0.0 use_small=1.0",  "tails":[ -1 ],  "f":{"logp":0.0, "use_small":1.0} },
-{"head":2, "rule":"[JJ@3:4]   ||| kleines               ||| little                ||| logp=0.0 use_little=1.0", "tails":[ -1 ], "f":{"logp":0.0, "use_little":1.0} },
-{"head":3, "rule":"[NN@3:5]   ||| kleines haus          ||| small house           ||| logp=0.0 use_house=1.0",  "tails":[ -1 ],  "f":{"logp":0.0, "use_house":1.0} },
-{"head":3, "rule":"[NN@3:5]   ||| kleines haus          ||| little house          ||| logp=0.0 use_house=1.0",  "tails":[ -1 ],  "f":{"logp":0.0, "use_house":1.0} },
-{"head":3, "rule":"[NN@3:5]   ||| [JJ@3:4,1] haus       ||| [JJ@3:4,1] house      ||| logp=0.0 use_house=1.0",  "tails":[ 2 ],   "f":{"logp":0.0, "use_house":1.0} },
-{"head":3, "rule":"[NN@3:5]   ||| [JJ@3:4,1] haus       ||| [JJ@3:4,1] shell      ||| logp=0.0 use_shell=1.0",  "tails":[ 2 ],   "f":{"logp":0.0, "use_shell":1.0} },
-{"head":4, "rule":"[NP@2:5]   ||| ein [NN@3:5,1]        ||| a [NN@3:5,1]          ||| logp=0.0 use_a=1.0",      "tails":[ 3 ],   "f":{"logp":0.0, "use_a":1.0} },
-{"head":5, "rule":"[VP@1:5]   ||| [V@1:2,1] [NP@2:5,2]  ||| [V@1:2,1] [NP@2:5,2]  ||| logp=0.0",                "tails":[ 1,4 ], "f":{"logp":0.0} },
-{"head":6, "rule":"[S@0:5]    ||| [NP@0:1,1] [VP@1:5,2] ||| [NP@0:1,1] [VP@1:5,2] ||| logp=0.0",                "tails":[ 0,5 ], "f":{"logp":0.0} },
-{"head":7, "rule":"[Goal@0:5] ||| [S@0:5,1]             ||| [S@0:5,1]             ||| ",                        "tails":[ 6 ],   "f":{} }
+{"head":0, "rule":"[NP] ||| ich ||| i ||| logp=-0.5 use_i=1.0", "tails":[ -1 ], "f":{"logp":-0.5, "use_i":1.0}, "weight":0.367879441171 },
+{"head":1, "rule":"[V] ||| sah ||| saw ||| logp=-0.25 use_saw=1.0", "tails":[ -1 ], "f":{"logp":-0.25, "use_saw":1.0}, "weight":0.606530659713 },
+{"head":2, "rule":"[JJ] ||| kleines ||| small ||| logp=0.0 use_small=1.0", "tails":[ -1 ], "f":{"logp":0.0, "use_small":1.0}, "weight":1.0 },
+{"head":2, "rule":"[JJ] ||| kleines ||| little ||| logp=0.0 use_little=1.0", "tails":[ -1 ], "f":{"logp":0.0, "use_little":1.0}, "weight":1.0 },
+{"head":3, "rule":"[NN] ||| kleines haus ||| small house ||| logp=0.0 use_house=1.0", "tails":[ -1 ], "f":{"logp":0.0, "use_house":1.0}, "weight":1.0 },
+{"head":3, "rule":"[NN] ||| kleines haus ||| little house ||| logp=0.0 use_house=1.0", "tails":[ -1 ], "f":{"logp":0.0, "use_house":1.0}, "weight":1.0 },
+{"head":3, "rule":"[NN] ||| [JJ,1] haus ||| [1] house ||| logp=0.0 use_house=1.0", "tails":[ 2 ], "f":{"logp":0.0, "use_house":1.0}, "weight":1.0 },
+{"head":3, "rule":"[NN] ||| [JJ,1] haus ||| [1] shell ||| logp=0.0 use_shell=1.0", "tails":[ 2 ], "f":{"logp":0.0, "use_shell":1.0}, "weight":2.71828182846 },
+{"head":4, "rule":"[NP] ||| ein [NN,1] ||| a [1] ||| logp=0.0 use_a=1.0", "tails":[ 3 ], "f":{"logp":0.0, "use_a":1.0}, "weight":1.0 },
+{"head":5, "rule":"[VP] ||| [V,1] [NP,2] ||| [1] [2] ||| logp=0.0", "tails":[ 1,4 ], "f":{"logp":0.0}, "weight":1.0 },
+{"head":6, "rule":"[S] ||| [NP,1] [VP,2] ||| [1] [2] ||| logp=0.0", "tails":[ 0,5 ], "f":{"logp":0.0}, "weight":1.0 },
+{"head":7, "rule":"[Goal] ||| [S,1] ||| [1] ||| ", "tails":[ 6 ], "f":{}, "weight":1.0 }
 ]
 }
 

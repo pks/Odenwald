@@ -13,23 +13,17 @@ class T
 end
 
 class NT
-  attr_accessor :symbol, :index, :left, :right
+  attr_accessor :symbol, :index
 
-  def initialize symbol=nil, index=nil, left=nil, right=nil
+  def initialize symbol=nil, index=nil
     @symbol = symbol
     @index  = index
-    @left   = left
-    @right  = right
   end
 
   def from_s s
-    s.delete! '[]'
-    @symbol, meta = s.split '@'
-    if meta
-      span, index = meta.split ','
-      @left, @right = span.split(':').map { |x| x.to_i }
-      @index = index.to_i
-    end
+    @symbol, @index = s.delete('[]').split ','
+    @symbol.strip!
+    @index = @index.to_i-1
   end
 
   def self.from_s s
@@ -39,22 +33,23 @@ class NT
   end
 
   def to_s
-    "NT(#{@left},#{@right})<#{@symbol},#{@index}>"
+    "NT<#{@symbol},#{@index}>"
   end
 end
 
 class Rule
   attr_accessor :lhs, :rhs, :target, :map
 
-  def initialize lhs=nil, rhs=[], target=[]
+  def initialize lhs=nil, rhs=nil, target=nil, map=nil
     @lhs    = lhs
     @rhs    = rhs
     @target = target
+    @map    = (map ? map : [])
     @arity_ = nil
   end
 
   def to_s
-    "#{@lhs} -> #{@rhs.map{ |i| i.to_s }.join ' '} ||| #{@target.map{ |i| i.to_s }.join ' '} [arity=#{arity}]"
+    "#{@lhs.to_s} -> #{@rhs.map{ |i| i.to_s }.join ' '} ||| #{@target.map{ |i| i.to_s }.join ' '} [arity=#{arity}]"
   end
 
   def arity
@@ -62,12 +57,13 @@ class Rule
     return @arity_
   end
 
-  def read_right_ s
+  def read_right_ s, fill_map=false
     _ = []
     s.split.each { |x|
       x.strip!
       if x[0]=='[' && x[x.size-1] == ']'
         _ << NT.from_s(x)
+        @map << _.last.index if fill_map
       else
         _ << T.new(x)
       end
@@ -79,10 +75,10 @@ class Rule
     lhs, rhs, target = splitpipe s, 3
     @lhs = NT.from_s lhs
     @rhs = read_right_ rhs
-    @target = read_right_ target
+    @target = read_right_ target, true
   end
 
-  def self.from_s s
+  def self.from_s_x s
     r = self.new
     r.from_s s
     return r
