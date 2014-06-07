@@ -151,7 +151,7 @@ def HG::derive path, cur, carry
   j = 0
   edge.rule.target.each { |i|
     if i.class == Grammar::NT
-      derive path, edge.tails[j], carry
+      derive path, edge.tails[edge.rule.map[j]], carry
       j += 1
     else
       carry << i

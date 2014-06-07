@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'nlp_ruby'
+require_relative 'grammar'
 
 
 class Chart
@@ -30,7 +31,7 @@ class Chart
 end
 
 class Item < Grammar::Rule
-  attr_accessor :lhs, :rhs, :dot, :e
+  attr_accessor :dot
 
   def initialize rule_or_item, left, right, dot
     @lhs = Grammar::NT.new rule_or_item.lhs.symbol
@@ -153,33 +154,4 @@ def parse input, n, active_chart, passive_chart, grammar
 
   }
 end
-
-def main
-  STDERR.write "> reading input from TODO\n"
-  #input = 'ich sah ein kleines haus'.split
-  #input = 'lebensmittel schuld an europäischer inflation'.split
-  input = 'offizielle prognosen sind von nur 3 prozent ausgegangen , meldete bloomberg .'.split
-  n = input.size
-
-  STDERR.write "> reading grammar\n"
-  grammar = Grammar::Grammar.new 'example/grammars/grammar.3.gz'
-  STDERR.write ">> adding glue grammar\n"
-  #grammar.add_glue_rules
-  STDERR.write ">> adding pass-through grammar\n"
-  #grammar.add_pass_through_rules input
-
-  STDERR.write "> initializing charts\n"
-  passive_chart = Chart.new n
-  active_chart = Chart.new n
-  init input, n, active_chart, passive_chart, grammar
-
-  STDERR.write "> parsing\n"
-  parse input, n, active_chart, passive_chart, grammar
-
-  puts "\n---\npassive chart"
-  visit(1, 0, 5) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts ' '+item.to_s }; puts }
-end
-
-
-main
 

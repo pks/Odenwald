@@ -22,12 +22,12 @@
 {"head":2, "rule":"[JJ] ||| kleines ||| little ||| logp=0.0 use_little=1.0", "tails":[ -1 ], "f":{"logp":0.0, "use_little":1.0}, "weight":1.0 },
 {"head":3, "rule":"[NN] ||| kleines haus ||| small house ||| logp=0.0 use_house=1.0", "tails":[ -1 ], "f":{"logp":0.0, "use_house":1.0}, "weight":1.0 },
 {"head":3, "rule":"[NN] ||| kleines haus ||| little house ||| logp=0.0 use_house=1.0", "tails":[ -1 ], "f":{"logp":0.0, "use_house":1.0}, "weight":1.0 },
-{"head":3, "rule":"[NN] ||| [JJ,1] haus ||| [1] house ||| logp=0.0 use_house=1.0", "tails":[ 2 ], "f":{"logp":0.0, "use_house":1.0}, "weight":1.0 },
-{"head":3, "rule":"[NN] ||| [JJ,1] haus ||| [1] shell ||| logp=0.0 use_shell=1.0", "tails":[ 2 ], "f":{"logp":0.0, "use_shell":1.0}, "weight":2.71828182846 },
-{"head":4, "rule":"[NP] ||| ein [NN,1] ||| a [1] ||| logp=0.0 use_a=1.0", "tails":[ 3 ], "f":{"logp":0.0, "use_a":1.0}, "weight":1.0 },
-{"head":5, "rule":"[VP] ||| [V,1] [NP,2] ||| [1] [2] ||| logp=0.0", "tails":[ 1,4 ], "f":{"logp":0.0}, "weight":1.0 },
-{"head":6, "rule":"[S] ||| [NP,1] [VP,2] ||| [1] [2] ||| logp=0.0", "tails":[ 0,5 ], "f":{"logp":0.0}, "weight":1.0 },
-{"head":7, "rule":"[Goal] ||| [S,1] ||| [1] ||| ", "tails":[ 6 ], "f":{}, "weight":1.0 }
+{"head":3, "rule":"[NN] ||| [JJ,1] haus ||| [JJ,1] house ||| logp=0.0 use_house=1.0", "tails":[ 2 ], "f":{"logp":0.0, "use_house":1.0}, "weight":1.0 },
+{"head":3, "rule":"[NN] ||| [JJ,1] haus ||| [JJ,1] shell ||| logp=0.0 use_shell=1.0", "tails":[ 2 ], "f":{"logp":0.0, "use_shell":1.0}, "weight":2.71828182846 },
+{"head":4, "rule":"[NP] ||| ein [NN,1] ||| a [NN,1] ||| logp=0.0 use_a=1.0", "tails":[ 3 ], "f":{"logp":0.0, "use_a":1.0}, "weight":1.0 },
+{"head":5, "rule":"[VP] ||| [V,1] [NP,2] ||| [V,1] [NP,2] ||| logp=0.0", "tails":[ 1,4 ], "f":{"logp":0.0}, "weight":1.0 },
+{"head":6, "rule":"[S] ||| [NP,1] [VP,2] ||| [VP,1] [NP,2] ||| logp=0.0", "tails":[ 0,5 ], "f":{"logp":0.0}, "weight":1.0 },
+{"head":7, "rule":"[Goal] ||| [S,1] ||| [S,1] ||| ", "tails":[ 6 ], "f":{}, "weight":1.0 }
 ]
 }
 
