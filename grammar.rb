@@ -114,16 +114,16 @@ class Grammar
 
   def add_glue_rules
     @rules.map { |r| r.lhs.symbol }.select { |s| s != 'S' }.uniq.each { |symbol|
-      @rules << Rule.new(NT.new('S'), [NT.new(symbol)])
+      @rules << Rule.new(NT.new('S'), [NT.new(symbol, 0)], [NT.new(symbol, 0)], [0])
       @startn << @rules.last
-      @rules << Rule.new(NT.new('S'), [NT.new('S'), NT.new('X')])
+      @rules << Rule.new(NT.new('S'), [NT.new('S', 0), NT.new('X'), 1], [NT.new('S', 0), NT.new('X'), 1], [0, 1])
       @startn << @rules.last
     }
   end
 
   def add_pass_through_rules s
     s.each { |word|
-      @rules << Rule.new(NT.new('X'), [T.new(word)])
+      @rules << Rule.new(NT.new('X'), [T.new(word)], [T.new(word)])
       @flat << @rules.last
     }
   end
