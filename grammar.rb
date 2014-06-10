@@ -33,7 +33,8 @@ class NT
   end
 
   def to_s
-    "NT<#{@symbol},#{@index}>"
+    return "NT<#{@symbol},#{@index}>" if @index>=0
+    return "NT<#{@symbol}>"
   end
 end
 
