@@ -15,7 +15,7 @@ end
 class NT
   attr_accessor :symbol, :index
 
-  def initialize symbol=nil, index=nil
+  def initialize symbol=nil, index=-1
     @symbol = symbol
     @index  = index
   end
@@ -119,7 +119,7 @@ class Grammar
     @rules.map { |r| r.lhs.symbol }.select { |s| s != 'S' }.uniq.each { |symbol|
       @rules << Rule.new(NT.new('S'), [NT.new(symbol, 0)], [NT.new(symbol, 0)], [0])
       @startn << @rules.last
-      @rules << Rule.new(NT.new('S'), [NT.new('S', 0), NT.new('X'), 1], [NT.new('S', 0), NT.new('X'), 1], [0, 1])
+      @rules << Rule.new(NT.new('S'), [NT.new('S', 0), NT.new('X', 1)], [NT.new('S', 0), NT.new('X', 1)], [0, 1])
       @startn << @rules.last
     }
   end
