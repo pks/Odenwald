@@ -1,6 +1,6 @@
 {
 "weights":{
-"logp":2.0, "use_shell":1.0
+  "logp":2.0, "use_shell":1.0
 },
 "nodes":
 [

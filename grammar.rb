@@ -39,13 +39,14 @@ class NT
 end
 
 class Rule
-  attr_accessor :lhs, :rhs, :target, :map
+  attr_accessor :lhs, :rhs, :target, :map, :f
 
-  def initialize lhs=nil, rhs=nil, target=nil, map=nil
+  def initialize lhs=nil, rhs=nil, target=nil, map=nil, f=SparseVector.new
     @lhs    = lhs
     @rhs    = rhs
     @target = target
     @map    = (map ? map : [])
+    @f      = f
     @arity_ = nil
   end
 
@@ -73,10 +74,11 @@ class Rule
   end
 
   def from_s s
-    lhs, rhs, target = splitpipe s, 3
+    lhs, rhs, target, f = splitpipe s, 3
     @lhs = NT.from_s lhs
     @rhs = read_right_ rhs
     @target = read_right_ target, true
+    @f = (f ? SparseVector.from_kv(f) : nil)
   end
 
   def self.from_s_x s

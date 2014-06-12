@@ -8,12 +8,13 @@ hypergraph, nodes_by_id = HG::read_hypergraph_from_json('example/json/test.json'
 path, score = HG::viterbi_path hypergraph, nodes_by_id[-1], semiring
 s = HG::derive path, path.last.head, []
 puts "#{s.map { |i| i.word }.join ' '}"
+puts Math.log score
 puts
 
-hypergraph.reset
-paths = HG::all_paths hypergraph, nodes_by_id[-1]
-paths.each { |p|
-  s = HG::derive p, p.last.head, []
-  puts "#{s.map { |i| i.word }.join ' '}"
-}
+#hypergraph.reset
+#paths = HG::all_paths hypergraph, nodes_by_id[-1]
+#paths.each { |p|
+#  s = HG::derive p, p.last.head, []
+#  puts "#{s.map { |i| i.word }.join ' '}"
+#}
 

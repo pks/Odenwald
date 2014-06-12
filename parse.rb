@@ -33,7 +33,7 @@ end
 Span = Struct.new(:left, :right)
 
 class Item < Grammar::Rule
-  attr_accessor :left, :right, :tail_spans, :dot
+  attr_accessor :left, :right, :tail_spans, :dot, :f
 
   def initialize rule_or_item, left, right, dot
     @lhs = Grammar::NT.new(rule_or_item.lhs.symbol, rule_or_item.lhs.index)
@@ -41,6 +41,7 @@ class Item < Grammar::Rule
     @right = right
     @rhs = []
     @tail_spans = {}
+    @f = rule_or_item.f
     @map = (rule_or_item.map ? rule_or_item.map.dup : [])
     rule_or_item.rhs.each_with_index { |x,i|
       if x.class == Grammar::T
