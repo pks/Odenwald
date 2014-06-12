@@ -3,10 +3,10 @@
 import cdec
 import sys, argparse
 
+
 def hg2json(hg, weights):
   """
   output a JSON representation of a cdec hypegraph
-  (see http://aclweb.org/aclwiki/index.php?title=Hypergraph_Format )
   """
   res = ''
   res += "{\n"
