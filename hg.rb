@@ -127,6 +127,10 @@ def HG::viterbi_path hypergraph, root, semiring=ViterbiSemiring.new
   return best_path, toposorted.last.score
 end
 
+def HG::k_best hypergraph, root, semiring=nil
+  #TODO
+end
+
 def HG::all_paths hypergraph, root
   toposorted = topological_sort hypergraph.nodes
   paths = [[]]

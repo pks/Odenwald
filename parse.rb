@@ -1,17 +1,23 @@
-#!/usr/bin/env ruby
-
 require 'nlp_ruby'
 require_relative 'grammar'
 
+
+def visit i, l, r, x=0
+  i.upto(r-x) { |span|
+    l.upto(r-span) { |k|
+      yield k, k+span
+    }
+  }
+end
 
 class Chart
 
   def initialize n
     @m = []
     (n+1).times {
-      _ = []
-      (n+1).times { _ << [] }
-      @m << _
+      a = []
+      (n+1).times { a << [] }
+      @m << a
     }
     @b = {}
   end
@@ -28,6 +34,10 @@ class Chart
   def has symbol, i, j
     return @b["#{i},#{j},#{symbol}"]
   end
+
+  def to_json
+    #TODO
+  end
 end
 
 Span = Struct.new(:left, :right)
@@ -36,27 +46,28 @@ class Item < Grammar::Rule
   attr_accessor :left, :right, :tail_spans, :dot, :f
 
   def initialize rule_or_item, left, right, dot
-    @lhs = Grammar::NT.new(rule_or_item.lhs.symbol, rule_or_item.lhs.index)
-    @left = left
-    @right = right
-    @rhs = []
-    @tail_spans = {}
-    @f = rule_or_item.f
-    @map = (rule_or_item.map ? rule_or_item.map.dup : [])
-    rule_or_item.rhs.each_with_index { |x,i|
-      if x.class == Grammar::T
-        @rhs << Grammar::T.new(x.word)
-      end
+    @lhs        = Grammar::NT.new rule_or_item.lhs.symbol, rule_or_item.lhs.index
+    @left       = left
+    @right      = right
+    @rhs        = []
+    @tail_spans = {} # refers to source side, use @map
+    @f          = rule_or_item.f
+    @map        = (rule_or_item.map ? rule_or_item.map.dup : [])
+    rule_or_item.rhs.each_with_index { |x,i| # duplicate rhs partially
+      @rhs << x
       if x.class == Grammar::NT
-        @rhs << Grammar::NT.new(x.symbol, x.index)
         begin
-          @tail_spans[i] = rule_or_item.tail_spans[i].dup
+          if i >= dot
+            @tail_spans[i] = Span.new(-1, -1)
+          else
+            @tail_spans[i] = rule_or_item.tail_spans[i].dup
+          end
         rescue
           @tail_spans[i] = Span.new(-1, -1)
         end
       end
     }
-    @dot = dot
+    @dot    = dot
     @target = rule_or_item.target
   end
 
@@ -88,14 +99,6 @@ def scan item, input, limit, passive_chart
   return true
 end
 
-def visit i, l, r, x=0
-  i.upto(r-x) { |span|
-    l.upto(r-span) { |k|
-      yield k, k+span
-    }
-  }
-end
-
 def parse input, n, active_chart, passive_chart, grammar
   visit(1, 0, n) { |i,j|
 
@@ -112,7 +115,7 @@ def parse input, n, active_chart, passive_chart, grammar
       next if r.rhs.size > j-i
       active_chart.at(i,j) << Item.new(r, i, i, 0)
     }
- 
+
     # parse
     new_symbols = []
     remaining_items = []
@@ -148,11 +151,11 @@ def parse input, n, active_chart, passive_chart, grammar
 
     # 'self-filling' step
     new_symbols.each { |s|
-      remaining_items.each { |active_item|
-        next if active_item.dot!=0
-        next if active_item.rhs[active_item.dot].class!=Grammar::NT
-        if active_item.rhs[active_item.dot].symbol == s
-          new_item = Item.new active_item, i, j, active_item.dot+1
+      remaining_items.each { |item|
+        next if item.dot!=0
+        next if item.rhs[item.dot].class!=Grammar::NT
+        if item.rhs[item.dot].symbol == s
+          new_item = Item.new item, i, j, item.dot+1
           new_item.tail_spans[new_item.dot-1] = Span.new(i,j)
           if new_item.dot==new_item.rhs.size
             new_symbols << new_item.lhs.symbol if !new_symbols.include? new_item.lhs.symbol

@@ -7,6 +7,9 @@ helpful stuff
 
 todo
 ====
- * animate parsing?
- * integrate with HG
+ * integrate with HG (chart to json)
+ * kbest
+ * feature interface
+ * (global) word ids instead of strings
+ * animate parsing
 

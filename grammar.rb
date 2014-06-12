@@ -41,11 +41,11 @@ end
 class Rule
   attr_accessor :lhs, :rhs, :target, :map, :f
 
-  def initialize lhs=nil, rhs=nil, target=nil, map=nil, f=SparseVector.new
+  def initialize lhs=NT.new, rhs=[], target=[], map=[], f=SparseVector.new
     @lhs    = lhs
     @rhs    = rhs
     @target = target
-    @map    = (map ? map : [])
+    @map    = map
     @f      = f
     @arity_ = nil
   end
@@ -59,30 +59,30 @@ class Rule
     return @arity_
   end
 
-  def read_right_ s, fill_map=false
-    _ = []
+  def read_right_ s, create_map=false
+    a = []
     s.split.each { |x|
       x.strip!
-      if x[0]=='[' && x[x.size-1] == ']'
-        _ << NT.from_s(x)
-        @map << _.last.index if fill_map
+      if x[0] == '[' && x[x.size-1] == ']'
+        a << NT.from_s(x)
+        @map << a.last.index if create_map
       else
-        _ << T.new(x)
+        a << T.new(x)
       end
     }
-    return _
+    return a
   end
 
   def from_s s
     lhs, rhs, target, f = splitpipe s, 3
-    @lhs = NT.from_s lhs
-    @rhs = read_right_ rhs
+    @lhs    = NT.from_s lhs
+    @rhs    = read_right_ rhs
     @target = read_right_ target, true
-    @f = (f ? SparseVector.from_kv(f) : nil)
+    @f      = (f ? SparseVector.from_kv(f) : nil)
   end
 
-  def self.from_s_x s
-    r = self.new
+  def self.from_s s
+    r = Rule.new
     r.from_s s
     return r
   end
@@ -110,9 +110,7 @@ class Grammar
   end
 
   def to_s
-    s = ''
-    @rules.each { |r| s += r.to_s+"\n" }
-    return s
+    @rules.map { |r| r.to_s }.join "\n"
   end
 
   def add_glue_rules
