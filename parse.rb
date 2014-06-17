@@ -1,8 +1,11 @@
-require 'nlp_ruby'
+require 'zipf'
 require_relative 'grammar'
 
 
-def visit i, l, r, x=0
+module Parse
+
+
+def Parse::visit i, l, r, x=0
   i.upto(r-x) { |span|
     l.upto(r-span) { |k|
       yield k, k+span
@@ -76,7 +79,7 @@ class Item < Grammar::Rule
   end
 end
 
-def init input, n, active_chart, passive_chart, grammar
+def Parse::init input, n, active_chart, passive_chart, grammar
   grammar.flat.each { |r|
     input.each_index { |i|
       if input[i, r.rhs.size] == r.rhs.map { |x| x.word }
@@ -86,7 +89,7 @@ def init input, n, active_chart, passive_chart, grammar
   }
 end
 
-def scan item, input, limit, passive_chart
+def Parse::scan item, input, limit, passive_chart
   while item.rhs[item.dot].class == Grammar::T
     return false if item.right==limit
     if item.rhs[item.dot].word == input[item.right]
@@ -99,7 +102,7 @@ def scan item, input, limit, passive_chart
   return true
 end
 
-def parse input, n, active_chart, passive_chart, grammar
+def Parse::parse input, n, active_chart, passive_chart, grammar
   visit(1, 0, n) { |i,j|
 
     STDERR.write " span(#{i},#{j})\n"
@@ -167,4 +170,7 @@ def parse input, n, active_chart, passive_chart, grammar
 
   }
 end
+
+
+end #module
 

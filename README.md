@@ -4,6 +4,7 @@ not much to see here, yet
 helpful stuff
  * https://github.com/jweese/thrax/wiki/Glue-grammar
  * http://aclweb.org/aclwiki/index.php?title=Hypergraph_Format
+ * http://kheafield.com/code/kenlm/developers/
 
 todo
 ====

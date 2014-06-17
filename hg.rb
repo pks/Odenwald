@@ -1,6 +1,4 @@
-#!/usr/bin/env ruby
-
-require 'nlp_ruby'
+require 'zipf'
 require_relative 'grammar'
 
 

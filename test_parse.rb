@@ -57,12 +57,12 @@ def main
   #grammar.add_pass_through_rules input
 
   STDERR.write "> initializing charts\n"
-  passive_chart = Chart.new n
-  active_chart = Chart.new n
-  init input, n, active_chart, passive_chart, grammar
+  passive_chart = Parse::Chart.new n
+  active_chart = Parse::Chart.new n
+  Parse::init input, n, active_chart, passive_chart, grammar
 
   STDERR.write "> parsing\n"
-  parse input, n, active_chart, passive_chart, grammar
+  Parse::parse input, n, active_chart, passive_chart, grammar
 
   #puts "\n---\npassive chart"
   #visit(1, 0, 5) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts " #{j} #{item.to_s}" }; puts }
