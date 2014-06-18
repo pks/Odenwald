@@ -1,5 +1,6 @@
 module Grammar
 
+
 class T
   attr_accessor :word
 
@@ -8,7 +9,7 @@ class T
   end
 
   def to_s
-    "T<#{@word}>"
+    @word
   end
 end
 
@@ -20,6 +21,8 @@ class NT
     @index  = index
   end
 
+  #FIXME? symbol should not contain [, ] or ",
+  #       else we're in trouble
   def from_s s
     @symbol, @index = s.delete('[]').split ','
     @symbol.strip!
@@ -27,45 +30,40 @@ class NT
   end
 
   def self.from_s s
-    n = NT.new
-    n.from_s s
-    return n
+    new = NT.new
+    new.from_s s
+    return new
   end
 
+  #FIXME? indexed by 1
   def to_s
-    return "NT<#{@symbol},#{@index}>" if @index>=0
-    return "NT<#{@symbol}>"
+    return "[#{@symbol},#{@index+1}]" if @index>=0
+    return "[#{@symbol}]"
   end
 end
 
 class Rule
   attr_accessor :lhs, :rhs, :target, :map, :f
 
-  def initialize lhs=NT.new, rhs=[], target=[], map=[], f=SparseVector.new
+  def initialize lhs=NT.new, rhs=[], target=[], map=[], f=SparseVector.new, arity=0
     @lhs    = lhs
     @rhs    = rhs
     @target = target
     @map    = map
     @f      = f
-    @arity_ = nil
+    @arity  = arity
   end
 
-  def to_s
-    "#{@lhs.to_s} -> #{@rhs.map{ |i| i.to_s }.join ' '} ||| #{@target.map{ |i| i.to_s }.join ' '} [arity=#{arity}]"
-  end
-
-  def arity
-    @arity_ = rhs.select { |i| i.class == NT }.size if !@arity_
-    return @arity_
-  end
-
-  def read_right_ s, create_map=false
+  def read_rhs_ s, make_meta=false
     a = []
-    s.split.each { |x|
+    s.split.map { |x|
       x.strip!
       if x[0] == '[' && x[x.size-1] == ']'
         a << NT.from_s(x)
-        @map << a.last.index if create_map
+        if make_meta
+          @map << a.last.index
+          @arity += 1
+        end
       else
         a << T.new(x)
       end
@@ -76,9 +74,9 @@ class Rule
   def from_s s
     lhs, rhs, target, f = splitpipe s, 3
     @lhs    = NT.from_s lhs
-    @rhs    = read_right_ rhs
-    @target = read_right_ target, true
-    @f      = (f ? SparseVector.from_kv(f) : nil)
+    @rhs    = read_rhs_ rhs, true
+    @target = read_rhs_ target
+    @f      = (f ? SparseVector.from_kv(f, '=', ' ') : SparseVector.new)
   end
 
   def self.from_s s
@@ -86,25 +84,29 @@ class Rule
     r.from_s s
     return r
   end
+
+  def to_s
+    "#{@lhs.to_s} ||| #{@rhs.map { |x| x.to_s }.join ' '} ||| #{@target.map { |x| x.to_s }.join ' '}"
+  end
 end
 
 class Grammar
-  attr_accessor :rules, :startn, :startt, :flat
+  attr_accessor :rules, :start_nt, :start_t, :flat
 
   def initialize fn
-    @rules = []; @startn = []; @startt = []; @flat = []
+    @rules = []; @start_nt = []; @start_t = []; @flat = []
     n = 0
     ReadFile.readlines_strip(fn).each_with_index { |s,i|
       STDERR.write '.'; STDERR.write " #{i+1}\n" if (i+1)%40==0
       n += 1
       @rules << Rule.from_s(s)
       if @rules.last.rhs.first.class == NT
-        @startn << @rules.last
+        @start_nt << @rules.last
       else
         if rules.last.arity == 0
           @flat << @rules.last
         else
-          @startt << @rules.last
+          @start_t << @rules.last
         end
       end
     }
@@ -115,17 +117,17 @@ class Grammar
     @rules.map { |r| r.to_s }.join "\n"
   end
 
-  def add_glue_rules
+  def add_glue
     @rules.map { |r| r.lhs.symbol }.select { |s| s != 'S' }.uniq.each { |symbol|
       @rules << Rule.new(NT.new('S'), [NT.new(symbol, 0)], [NT.new(symbol, 0)], [0])
-      @startn << @rules.last
+      @start_nt << @rules.last
       @rules << Rule.new(NT.new('S'), [NT.new('S', 0), NT.new('X', 1)], [NT.new('S', 0), NT.new('X', 1)], [0, 1])
-      @startn << @rules.last
+      @start_nt << @rules.last
     }
   end
 
-  def add_pass_through_rules s
-    s.each { |word|
+  def add_pass_through a
+    a.each { |word|
       @rules << Rule.new(NT.new('X'), [T.new(word)], [T.new(word)])
       @flat << @rules.last
     }

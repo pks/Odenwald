@@ -3,7 +3,7 @@
 import cdec
 import sys, argparse
 
-
+#FIXME new format
 def hg2json(hg, weights):
   """
   output a JSON representation of a cdec hypegraph

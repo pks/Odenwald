@@ -5,16 +5,16 @@ require 'xmlsimple'
 require_relative 'parse'
 
 
-def read_grammar fn, add_glue, add_pass_through
+def read_grammar fn, add_glue, add_pass_through, input=nil
   STDERR.write "> reading grammar '#{fn}'\n"
   grammar = Grammar::Grammar.new fn
   if add_glue
-    STDERR.write ">> adding glue grammar\n"
-    grammar.add_glue_rules
+    STDERR.write ">> adding glue rules\n"
+    grammar.add_glue
   end
   if add_pass_through
-    STDERR.write ">> adding pass-through grammar\n"
-    grammar.add_pass_through_rules input
+    STDERR.write ">> adding pass-through rules\n"
+    grammar.add_pass_through input
   end
   return grammar
 end
@@ -24,7 +24,7 @@ def main
     opt :input,            "", :type => :string, :default => '-',   :short => '-i'
     opt :grammar,          "", :type => :string, :default => nil,   :short => '-g'
     opt :weights,          "", :type => :string, :default => nil,   :short => '-w'
-    opt :add_glue,         "", :type => :bool,   :default => false, :short => '-h'
+    opt :add_glue,         "", :type => :bool,   :default => false, :short => '-l'
     opt :add_pass_through, "", :type => :bool,   :default => false, :short => '-p'
   end
 
@@ -41,7 +41,7 @@ def main
     n = input.size
 
     if x['grammar']
-      grammar = read_grammar x['grammar'], cfg[:add_glue], cfg[:add_pass_through]
+      grammar = read_grammar x['grammar'], cfg[:add_glue], cfg[:add_pass_through], input
     end
 
     STDERR.write "> initializing charts\n"
@@ -57,16 +57,14 @@ def main
       weights = SparseVector.new
     end
 
-    hypergraph, nodes_by_id = passive_chart.to_hg weights
+    hypergraph = passive_chart.to_hg weights
+    puts hypergraph.to_json weights
 
     STDERR.write "> viterbi\n"
     semiring = ViterbiSemiring.new
-    path, score = HG::viterbi_path hypergraph, nodes_by_id[-1], semiring
+    path, score = HG::viterbi_path hypergraph, hypergraph.nodes_by_id[-1], semiring
     s = HG::derive path, path.last.head, []
-    puts "#{s.map { |i| i.word }.join ' '}"
-    puts Math.log score
-    puts
-
+    STDERR.write " #{s.map { |i| i.word }.join ' '} ||| #{Math.log score}\n"
   }
 end
 

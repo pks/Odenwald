@@ -40,51 +40,7 @@ class Chart
     return @b["#{i},#{j},#{symbol}"]
   end
 
-  def to_json weights=nil
-    id = 0
-    json_s = "{\n"
-    json_s += "\"weights\":#{weights.to_json},\n"
-    json_s += "\"nodes\":\n"
-    json_s += "[\n"
-    seen = {}
-    Parse::visit(1, 0, @n) { |i,j|
-      self.at(i,j).each { |item|
-       _ = "#{item.lhs.symbol},#{i},#{j}"
-       if !seen[_]
-         json_s += "{ \"id\":#{id}, \"cat\":\"#{item.lhs.symbol.to_json.slice(1..-1).chomp('"')}\", \"span\":[#{i},#{j}] },\n"
-         seen[_] = id
-         id += 1
-       end
-      }
-    }
-    json_s += "{ \"id\":-1, \"cat\":\"root\", \"span\":[-1, -1] }\n"
-    json_s += "],\n"
-    json_s += "\"edges\":\n"
-    json_s += "[\n"
-    a = []
-    Parse::visit(1, 0, @n) { |i,j|
-      self.at(i,j).each { |item|
-        _ = '{ '
-        _ += "\"head\":#{seen[item.lhs.symbol+','+i.to_s+','+j.to_s]}, "
-        _ += "\"rule\":\"[#{item.lhs.symbol.to_json.slice(1..-1).chomp('"')}] ||| "
-        _ += "#{item.rhs.map{|x| (x.class==Grammar::NT ? '['+x.symbol.to_json.slice(1..-1).chomp('"')+','+x.index.to_s+']' : x.word.to_json).slice(1..-1).chomp('"') }.join(' ')} ||| #{item.target.map{|x| (x.class==Grammar::NT ? '['+x.symbol.to_json.slice(1..-1).chomp('"')+','+(x.index+1).to_s+']' : x.word.to_json.slice(1..-1).chomp('"')) }.join(' ')}\ |||\", "
-        if item.tail_spans.empty?
-          _ += "\"tails\":[-1], "
-        else
-          _ += "\"tails\":[#{item.rhs.zip((0..item.rhs.size-1).map{|q| item.tail_spans[q] }).select{|x| x[0].class==Grammar::NT }.map{|x| seen[x[0].symbol.to_json.slice(1..-1).chomp('"')+','+x[1].left.to_s+','+x[1].right.to_s]}.join ', '}], "
-        end
-        _ += "\"f\":#{(item.f ? item.f.to_json : '{}')} }"
-        a << _
-      }
-    }
-    json_s += a.join ",\n"
-    json_s += "\n]\n"
-    json_s += "}\n"
-
-    return json_s
-  end
-
-  def to_hg weights
+  def to_hg weights=SparseVector.new
     nodes = []
     edges = []
     nodes_by_id = {}
@@ -116,7 +72,7 @@ class Chart
         edges.last.tails.each { |n| n.outgoing << edges.last }
       }
     }
-    return HG::Hypergraph.new(nodes, edges), nodes_by_id
+    return HG::Hypergraph.new(nodes, edges, nodes_by_id)
   end
 end
 
@@ -185,13 +141,13 @@ def Parse::parse input, n, active_chart, passive_chart, grammar
     STDERR.write " span(#{i},#{j})\n"
 
     # try to apply rules starting with T
-    grammar.startt.select { |r| r.rhs.first.word == input[i] }.each { |r|
+    grammar.start_t.select { |r| r.rhs.first.word == input[i] }.each { |r|
       new_item = Item.new r, i, i, 0
       active_chart.at(i,j) << new_item if scan new_item, input, j, passive_chart
     }
 
     # seed active chart
-    grammar.startn.each { |r|
+    grammar.start_nt.each { |r|
       next if r.rhs.size > j-i
       active_chart.at(i,j) << Item.new(r, i, i, 0)
     }

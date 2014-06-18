@@ -2,19 +2,35 @@
 "weights":{},
 "nodes":
 [
+{ "id":-1, "cat":"root", "span":[-1,-1] },
 { "id":0, "cat":"X", "span":[2,3] },
-{ "id":1, "cat":"X", "span":[4,5] },
-{ "id":2, "cat":"X", "span":[1,3] },
-{ "id":3, "cat":"X", "span":[3,5] },
-{ "id":4, "cat":"X", "span":[0,3] },
-{ "id":-1, "cat":"root", "span":[-1, -1] }
+{ "id":1, "cat":"S", "span":[2,3] },
+{ "id":2, "cat":"X", "span":[4,5] },
+{ "id":3, "cat":"S", "span":[4,5] },
+{ "id":4, "cat":"X", "span":[1,3] },
+{ "id":5, "cat":"S", "span":[1,3] },
+{ "id":6, "cat":"X", "span":[3,5] },
+{ "id":7, "cat":"S", "span":[3,5] },
+{ "id":8, "cat":"X", "span":[0,3] },
+{ "id":9, "cat":"S", "span":[0,3] },
+{ "id":10, "cat":"S", "span":[2,5] },
+{ "id":11, "cat":"S", "span":[1,5] },
+{ "id":12, "cat":"S", "span":[0,5] }
 ],
 "edges":
 [
-{ "head":0, "rule":"[X] ||| an ||| for |||", "tails":[-1], "f":{} },
-{ "head":1, "rule":"[X] ||| inflation ||| inflation |||", "tails":[-1], "f":{} },
-{ "head":2, "rule":"[X] ||| schuld X,0] ||| responsible [X,1] |||", "tails":[0], "f":{} },
-{ "head":3, "rule":"[X] ||| europäischer X,0] ||| european [X,1] |||", "tails":[1], "f":{} },
-{ "head":4, "rule":"[X] ||| lebensmittel X,0] ||| food [X,1] |||", "tails":[2], "f":{} }
+{ "head":0, "rule":"[X] ||| an ||| for", "tails":[-1], "f":{} },
+{ "head":1, "rule":"[S] ||| [X,1] ||| [X,1]", "tails":[0], "f":{} },
+{ "head":2, "rule":"[X] ||| inflation ||| inflation", "tails":[-1], "f":{} },
+{ "head":3, "rule":"[S] ||| [X,1] ||| [X,1]", "tails":[2], "f":{} },
+{ "head":4, "rule":"[X] ||| schuld [X,1] ||| responsible [X,1]", "tails":[0], "f":{} },
+{ "head":5, "rule":"[S] ||| [X,1] ||| [X,1]", "tails":[4], "f":{} },
+{ "head":6, "rule":"[X] ||| europäischer [X,1] ||| european [X,1]", "tails":[2], "f":{} },
+{ "head":7, "rule":"[S] ||| [X,1] ||| [X,1]", "tails":[6], "f":{} },
+{ "head":8, "rule":"[X] ||| lebensmittel [X,1] ||| food [X,1]", "tails":[4], "f":{} },
+{ "head":9, "rule":"[S] ||| [X,1] ||| [X,1]", "tails":[8], "f":{} },
+{ "head":10, "rule":"[S] ||| [S,1] [X,2] ||| [S,1] [X,2]", "tails":[1, 6], "f":{} },
+{ "head":11, "rule":"[S] ||| [S,1] [X,2] ||| [S,1] [X,2]", "tails":[5, 6], "f":{} },
+{ "head":12, "rule":"[S] ||| [S,1] [X,2] ||| [S,1] [X,2]", "tails":[9, 6], "f":{} }
 ]
 }

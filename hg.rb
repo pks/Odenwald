@@ -24,12 +24,13 @@ class HG::Node
 end
 
 class HG::Hypergraph
-  attr_accessor :nodes, :edges
+  attr_accessor :nodes, :edges, :nodes_by_id
 
-  def initialize nodes=[], edges=[]
-    @nodes  = nodes
-    @edges  = edges
-    @arity_ = nil
+  def initialize nodes=[], edges=[], nodes_by_id={}
+    @nodes       = nodes
+    @edges       = edges
+    @nodes_by_id = nodes_by_id
+    @arity_      = nil
   end
 
   def arity
@@ -43,6 +44,27 @@ class HG::Hypergraph
 
   def to_s
     "Hypergraph<nodes:#{@nodes.size}, edges:#{@edges.size}, arity=#{arity}>"
+  end
+
+  def to_json weights=nil
+    json_s = "{\n"
+    json_s += "\"weights\":#{(weights ? weights.to_json : '{}')},\n"
+    json_s += "\"nodes\":\n"
+    json_s += "[\n"
+    json_s += @nodes.map { |n|
+      "{ \"id\":#{n.id}, \"cat\":\"#{n.symbol.to_json.slice(1..-1).chomp('"')}\", \"span\":[#{n.left},#{n.right}] }"
+    }.join ",\n"
+    json_s += "\n],\n"
+    json_s += "\"edges\":\n"
+    json_s += "[\n"
+    json_s += @edges.map { |e|
+      "{ \"head\":#{e.head.id}, \"rule\":#{e.rule.to_json}, \"tails\":#{e.tails.map{ |n| n.id }}, \"f\":#{(e.f ? e.f.to_json : '{}')} }"
+    }.join ",\n"
+    json_s += "\n]\n"
+    json_s += "}\n"
+
+    return json_s
+ 
   end
 end
 
@@ -177,7 +199,7 @@ def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=fal
     e = Hyperedge.new(nodes_by_id[x['head']], \
                       x['tails'].map { |j| nodes_by_id[j] }.to_a, \
                       (x['score'] ? semiring.convert.call(x['score'].to_f) : nil), \
-                      (x['f'] ? SparseVector.from_h(x['f']) : nil), \
+                      (x['f'] ? SparseVector.from_h(x['f']) : SparseVector.new), \
                       x['rule'])
     if x['f']
       if log_weights
