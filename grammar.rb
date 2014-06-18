@@ -93,8 +93,10 @@ class Grammar
 
   def initialize fn
     @rules = []; @startn = []; @startt = []; @flat = []
+    n = 0
     ReadFile.readlines_strip(fn).each_with_index { |s,i|
-      STDERR.write '.'; STDERR.write " #{i+1}\n" if (i+1)%80==0
+      STDERR.write '.'; STDERR.write " #{i+1}\n" if (i+1)%40==0
+      n += 1
       @rules << Rule.from_s(s)
       if @rules.last.rhs.first.class == NT
         @startn << @rules.last
@@ -106,7 +108,7 @@ class Grammar
         end
       end
     }
-    STDERR.write "\n"
+    STDERR.write " #{n}\n"
   end
 
   def to_s
@@ -131,5 +133,5 @@ class Grammar
 end
 
 
-end # module
+end #module
 
