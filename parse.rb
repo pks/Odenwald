@@ -1,5 +1,6 @@
 require 'zipf'
 require_relative 'grammar'
+require_relative 'hg'
 
 
 module Parse
@@ -81,6 +82,41 @@ class Chart
     json_s += "}\n"
 
     return json_s
+  end
+
+  def to_hg weights
+    nodes = []
+    edges = []
+    nodes_by_id = {}
+    nodes << HG::Node.new(-1, "root", [-1,-1])
+    nodes_by_id[-1] = nodes.last
+    id = 0
+    seen = {}
+    Parse::visit(1, 0, @n) { |i,j|
+      self.at(i,j).each { |item|
+       _ = "#{item.lhs.symbol},#{i},#{j}"
+       if !seen[_]
+         nodes << HG::Node.new(id, item.lhs.symbol, [i,j])
+         nodes_by_id[id] = nodes.last
+         seen[_] = id
+         id += 1
+       end
+      }
+    }
+
+    Parse::visit(1, 0, @n) { |i,j|
+      self.at(i,j).each { |item|
+        edges << HG::Hyperedge.new(nodes_by_id[seen[item.lhs.symbol+','+i.to_s+','+j.to_s]], \
+                               (item.tail_spans.empty? ? [nodes_by_id[-1]] : item.rhs.zip((0..item.rhs.size-1).map{|q| item.tail_spans[q] }).select{|x| x[0].class==Grammar::NT }.map{|x| nodes_by_id[seen["#{x[0].symbol},#{x[1].left},#{x[1].right}"]]}), \
+                                Math.exp(weights.dot(item.f)),
+                                item.f,
+                                Grammar::Rule.new(item.lhs, item.rhs, item.target, item.map, item.f), \
+                               )
+        edges.last.head.incoming << edges.last
+        edges.last.tails.each { |n| n.outgoing << edges.last }
+      }
+    }
+    return HG::Hypergraph.new(nodes, edges), nodes_by_id
   end
 end
 
