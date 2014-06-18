@@ -1,0 +1,20 @@
+{
+"weights":{},
+"nodes":
+[
+{ "id":0, "cat":"X", "span":[2,3] },
+{ "id":1, "cat":"X", "span":[4,5] },
+{ "id":2, "cat":"X", "span":[1,3] },
+{ "id":3, "cat":"X", "span":[3,5] },
+{ "id":4, "cat":"X", "span":[0,3] },
+{ "id":-1, "cat":"root", "span":[-1, -1] }
+],
+"edges":
+[
+{ "head":0, "rule":"[X] ||| an ||| for |||", "tails":[-1], "f":{} },
+{ "head":1, "rule":"[X] ||| inflation ||| inflation |||", "tails":[-1], "f":{} },
+{ "head":2, "rule":"[X] ||| schuld X,0] ||| responsible [X,1] |||", "tails":[0], "f":{} },
+{ "head":3, "rule":"[X] ||| europäischer X,0] ||| european [X,1] |||", "tails":[1], "f":{} },
+{ "head":4, "rule":"[X] ||| lebensmittel X,0] ||| food [X,1] |||", "tails":[2], "f":{} }
+]
+}
