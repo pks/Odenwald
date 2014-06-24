@@ -52,6 +52,8 @@ def main
     STDERR.write "> parsing\n"
     Parse::parse input, n, active_chart, passive_chart, grammar
 
+    exit
+
     weights = SparseVector.from_kv(ReadFile.read(cfg[:weights]), ' ', "\n")
     if !weights
       weights = SparseVector.new
