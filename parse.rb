@@ -155,22 +155,8 @@ def Parse::parse input, n, active_chart, passive_chart, grammar
     # parse
     new_symbols = []
     remaining_items = []
-    
-    num_threads = 2
-    slice_sz = active_chart.at(i,j).size/num_threads
-    slices = []
-    num_threads.times {
-      slices << active_chart.at(i,j).shift(slice_sz+1)
-    }
-    m = Mutex.new
-    threads = []
-
-    slices.each_with_index { |slice,ti|
-    threads << Thread.new(ti) { 
-    #while !active_chart.at(i,j).empty?
-    while !slice.empty?
-      #active_item = active_chart.at(i,j).pop
-      active_item = slice.pop
+    while !active_chart.at(i,j).empty?
+      active_item = active_chart.at(i,j).pop
       advanced = false
       visit(1, i, j, 1) { |k,l|
         if passive_chart.has active_item.rhs[active_item.dot].symbol, k, l
@@ -180,16 +166,13 @@ def Parse::parse input, n, active_chart, passive_chart, grammar
             if scan new_item, input, j, passive_chart
               if new_item.dot == new_item.rhs.size
                 if new_item.left == i && new_item.right == j
-                  #new_symbols << new_item.lhs.symbol if !new_symbols.include? new_item.lhs.symbol
-                  m.synchronize { new_symbols << new_item.lhs.symbol if !new_symbols.include? new_item.lhs.symbol }
-                  #passive_chart.add new_item, i, j
-                  m.synchronize { passive_chart.add new_item, i, j }
+                  new_symbols << new_item.lhs.symbol if !new_symbols.include? new_item.lhs.symbol
+                  passive_chart.add new_item, i, j
                   advanced = true
                 end
               else
                 if new_item.right+(new_item.rhs.size-(new_item.dot)) <= j
-                  #active_chart.at(i,j) << new_item
-                  slice << new_item
+                  active_chart.at(i,j) << new_item
                   advanced = true
                 end
               end
@@ -198,13 +181,10 @@ def Parse::parse input, n, active_chart, passive_chart, grammar
         end
       }
       if !advanced
-        m.synchronize { remaining_items << active_item }
+        remaining_items << active_item
       end
     end
-    }
 
-    }
-    threads.each { |t| t.join }
 
     # 'self-filling' step
     new_symbols.each { |s|

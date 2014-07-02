@@ -52,15 +52,12 @@ def main
     STDERR.write "> parsing\n"
     Parse::parse input, n, active_chart, passive_chart, grammar
 
-    exit
-
     weights = SparseVector.from_kv(ReadFile.read(cfg[:weights]), ' ', "\n")
     if !weights
       weights = SparseVector.new
     end
 
     hypergraph = passive_chart.to_hg weights
-    puts hypergraph.to_json weights
 
     STDERR.write "> viterbi\n"
     semiring = ViterbiSemiring.new
