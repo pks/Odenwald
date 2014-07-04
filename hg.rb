@@ -101,7 +101,7 @@ def HG::topological_sort nodes
     sorted.last.outgoing.each { |e|
       next if e.marked?
       e.mark += 1
-      s << e.head if e.head.incoming.reject{ |f| f.mark==f.arity }.empty?
+      s << e.head if e.head.incoming.reject{ |f| f.marked? }.empty?
     }
   end
   return sorted
