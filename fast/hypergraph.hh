@@ -17,16 +17,18 @@ using namespace std;
 
 typedef double score_t;
 typedef double weight_t;
+typedef size_t id_t;
 
 namespace Hg {
 
 
+
 class Node;
 
-class Hyperedge {
+class Edge {
   public:
-    Node*            head;
-    vector<Node*>    tails;
+    id_t             head;
+    vector<id_t>     tails;
     score_t          score;
     vector<weight_t> f;
     unsigned int     mark;
@@ -48,8 +50,8 @@ class Node {
     unsigned int left;
     unsigned int right;
     score_t      score;
-    vector<Hyperedge*> outgoing;
-    vector<Hyperedge*> incoming;
+    vector<id_t> outgoing;
+    vector<id_t> incoming;
 
     string s();
 
@@ -60,10 +62,9 @@ class Node {
 
 class Hypergraph {
   public:
-    vector<Node*>      nodes;
-    vector<Hyperedge*> edges;
-    unsigned int       arity_;
-    map<unsigned int, Node*> nodes_by_id;
+    vector<Node> nodes;
+    vector<Edge> edges;
+    unsigned int arity_;
 
     unsigned int arity();
     void reset();
