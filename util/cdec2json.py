@@ -2,6 +2,9 @@
 
 import cdec
 import sys, argparse
+import json
+import gzip
+
 
 #FIXME new format
 def hg2json(hg, weights):
@@ -20,7 +23,7 @@ def hg2json(hg, weights):
   res += '"nodes":'+"\n"
   res += "[\n"
   a = []
-  a.append( '{ "id":-1, "cat":"root", "span":[-1,-1] }' )
+  a.append( '{ "id":0, "cat":"root", "span":[-1,-1] }' )
   for i in hg.nodes:
     a.append('{ "id":%d, "cat":"%s", "span":[%d,%d] }'%(i.id, i.cat, i.span[0], i.span[1]))
   res += ",\n".join(a)+"\n"
@@ -31,7 +34,7 @@ def hg2json(hg, weights):
   for i in hg.edges:
     s = "{"
     s += '"head":%d'%(i.head_node.id)
-    s += ', "rule":"%s"'%(i.trule)
+    s += ', "rule":%s'%(json.dumps(str(i.trule)))
     # f
     xs = ' "f":{'
     b = []
@@ -41,9 +44,9 @@ def hg2json(hg, weights):
     xs += "},"
     # tails
     if len(list(i.tail_nodes)) > 0:
-      s += ', "tails":[ %s ],'%(",".join([str(n.id) for n in i.tail_nodes]))
+      s += ', "tails":[ %s ],'%(",".join([str(n.id+1) for n in i.tail_nodes]))
     else:
-      s += ', "tails":[ -1 ],'
+      s += ', "tails":[ 0 ],'
     s += xs
     s += ' "weight":%s }'%(i.prob)
     a.append(s)
@@ -56,13 +59,19 @@ def main():
   parser = argparse.ArgumentParser(description='get a proper json representation of cdec hypergraphs')
   parser.add_argument('-c', '--config', required=True, help='decoder configuration')
   parser.add_argument('-w', '--weights', required=True, help='feature weights')
+  parser.add_argument('-g', '--grammar', required=False, help='grammar')
   args = parser.parse_args()
   with open(args.config) as config:
     config = config.read()
   decoder = cdec.Decoder(config)
   decoder.read_weights(args.weights)
   ins = sys.stdin.readline().strip()
-  hg = decoder.translate(ins)
+  if args.grammar:
+    with gzip.open(args.grammar) as grammar:
+      grammar = grammar.read()
+    hg = decoder.translate(ins, grammar=grammar)
+  else:
+    hg = decoder.translate(ins)
 
   sys.stderr.write( "input:\n '%s'\n"%(ins) )
   sys.stderr.write( "viterbi translation:\n '%s'\n"%(hg.viterbi()) )

@@ -1,5 +1,6 @@
 #ifndef SEMIRING_HH
 #define SEMIRING_HH
+//#pragma once
 
 
 template<typename T>

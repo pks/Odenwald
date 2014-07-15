@@ -11,6 +11,8 @@
 #include <functional>
 #include <algorithm>
 
+#include <msgpack.hpp>
+
 using namespace std;
 
 typedef double score_t;
@@ -35,6 +37,7 @@ class Hyperedge {
     bool is_marked();
     string s();
 
+    MSGPACK_DEFINE(head, tails, score, f, mark, arity_);
 };
 
 
@@ -49,6 +52,8 @@ class Node {
     vector<Hyperedge*> incoming;
 
     string s();
+
+    MSGPACK_DEFINE(id, symbol, left, right, score, outgoing, incoming);
 };
 
 
@@ -64,6 +69,8 @@ class Hypergraph {
     void reset();
     string s();
     string json_s();
+
+    MSGPACK_DEFINE(nodes, edges, arity_, nodes_by_id);
 };
 
 vector<Node*> topological_sort(vector<Node*>& nodes);
