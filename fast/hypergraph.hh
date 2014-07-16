@@ -7,75 +7,74 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <map>
+#include <list>
+#include <unordered_map>
 #include <functional>
 #include <algorithm>
+#include <iterator>
 
-#include <msgpack.hpp>
+#include "msgpack-c/include/msgpack.hpp"
 
 using namespace std;
 
 typedef double score_t;
 typedef double weight_t;
-typedef size_t id_t;
 
 namespace Hg {
-
 
 
 class Node;
 
 class Edge {
   public:
-    id_t             head;
-    vector<id_t>     tails;
+    Node*            head;
+    vector<Node*>    tails;
     score_t          score;
-    vector<weight_t> f;
-    unsigned int     mark;
   //Grammar::Rule    rule; FIXME
-    unsigned int     arity_;
+    vector<weight_t> f;
+    unsigned int     arity;
+    unsigned int     mark;
 
-    unsigned int arity();
     bool is_marked();
-    string s();
+    friend std::ostream& operator<<(std::ostream& os, const Edge& s);
 
-    MSGPACK_DEFINE(head, tails, score, f, mark, arity_);
+    size_t           head_id_;
+    vector<size_t>   tails_ids_; // node ids
+    MSGPACK_DEFINE(head_id_, tails_ids_, score, f, arity);
 };
-
 
 class Node {
   public:
-    unsigned int id;
-    string       symbol;
-    unsigned int left;
-    unsigned int right;
-    score_t      score;
-    vector<id_t> outgoing;
-    vector<id_t> incoming;
+    size_t         id;
+    string         symbol;
+    unsigned short left;
+    unsigned short right;
+    score_t        score;
+    vector<Edge*>  incoming;
+    vector<Edge*>  outgoing;
+    unsigned int   mark;
 
-    string s();
+    bool is_marked();
+    friend std::ostream& operator<<(std::ostream& os, const Node& n);
 
-    MSGPACK_DEFINE(id, symbol, left, right, score, outgoing, incoming);
+    vector<size_t> incoming_ids_; // edge ids
+    vector<size_t> outgoing_ids_; // edge ids
+    MSGPACK_DEFINE(id, symbol, left, right, score, incoming_ids_, outgoing_ids_);
 };
-
-
 
 class Hypergraph {
   public:
-    vector<Node> nodes;
-    vector<Edge> edges;
-    unsigned int arity_;
+    list<Node*>                   nodes;
+    vector<Edge*>                 edges;
+    unordered_map<size_t, Node*>  nodes_by_id;
+    unsigned int                  arity;
 
-    unsigned int arity();
     void reset();
-    string s();
-    string json_s();
-
-    MSGPACK_DEFINE(nodes, edges, arity_, nodes_by_id);
+    void add_node(Node* n) { nodes.push_back(n); nodes_by_id[n->id] = n; }
 };
 
-vector<Node*> topological_sort(vector<Node*>& nodes);
-void viterbi(vector<Node*>& nodes, map<unsigned int, Hg::Node*> nodes_by_id, Node* root);
+void topological_sort(list<Node*>& nodes, list<Node*>::iterator root);
+void viterbi(Hypergraph& hg);
 
 
 } // namespace

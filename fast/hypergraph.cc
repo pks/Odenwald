@@ -5,126 +5,111 @@ namespace Hg {
 
 /*
  * Node
- * methods
  *
  */
-string
-Node::s()
+bool
+Node::is_marked()
 {
-  ostringstream os;
+  return mark >= incoming.size();
+}
+
+std::ostream&
+operator<<(std::ostream& os, const Node& n)
+{
   os << \
-    "Node<id=" << this->id << \
-    ", symbol=" << this->symbol << \
-    ", span=(" << this->left << "," << this->right << ")" \
-    ", outgoing:" << this->outgoing.size() << \
-    ", incoming:" << this->incoming.size() << ">";
-  return os.str();
+    "Node<id=" << n.id << \
+    ", symbol=" << n.symbol << \
+    ", span=(" << n.left << "," << n.right << ")" \
+    ", score=" << n.score << \
+    ", incoming:" << n.incoming.size() << \
+    ", outgoing:" << n.outgoing.size() << \
+    ", mark=" << n.mark << ">";
 }
 
 /*
- * Hyperedge
- * methods
+ * Edge
  *
  */
-unsigned int
-Hyperedge::arity()
-{
-  return this->arity_;
-}
-
 bool
-Hyperedge::is_marked()
+Edge::is_marked()
 {
-  return (this->arity_ == this->mark);
+  return mark >= arity;
 }
 
-string
-Hyperedge::s()
+std::ostream&
+operator<<(std::ostream& os, const Edge& e)
 {
-  ostringstream os;
-  vector<unsigned int> tails_ids;
   ostringstream _;
-  for_each(this->tails.begin(), this->tails.end(), [&_](Node* n) { _ << n->id; _ << ","; });
+  for (auto it = e.tails.begin(); it != e.tails.end(); ++it) {
+    _ << (*it)->id; if (*it != e.tails.back()) _ << ",";
+  }
   os << \
-    "Hyperedge<head=" << this->head->id << \
+    "Edge<head=" << e.head->id << \
+    "', tails=[" << _.str() << "]" \
+    ", score=" << e.score << \
     ", rule:'" << "TODO" << \
-    "', tails=" << _.str() << \
-    ", arity=" << this->arity() << \
-    ", score=" << this->score << \
     " , f=" << "TODO" << \
-    ", mark=" << this->mark << ">";
-  return os.str();
+    ", arity=" << e.arity << \
+    ", mark=" << e.mark << ">";
+  return os;
 }
-
 
 /*
  * Hypergraph
  * methods
  *
  */
-unsigned int
-Hypergraph::arity()
-{
-  // TODO
-  return 0;
-}
-
 void
 Hypergraph::reset()
 {
-}
-
-string
-Hypergraph::s()
-{
-  // TODO
-  return "";
-}
-
-string
-Hypergraph::json_s()
-{
-  // TODO
-  return "";
 }
 
 /*
  * functions
  *
  */
-vector<Node*>
-topological_sort(vector<Node*>& nodes)
+void
+topological_sort(list<Node*>& nodes, list<Node*>::iterator root)
 {
-  vector<Node*> sorted;
-  vector<Node*> tmp;
-  for_each(nodes.begin(), nodes.end(), [&tmp](Node* n) -> void { if (n->incoming.size()==0) tmp.push_back(n); });
-  while (!tmp.empty()) {
-    Node* n = tmp.front();
-    cout << n->id << endl;
-    tmp.erase(tmp.begin());
-    sorted.push_back(n);
-    for (auto it = n->outgoing.begin(); it !=  n->outgoing.end(); it++) { // edges
-      if ((*it)->is_marked()) {
-        continue;
-      }
-      (*it)->mark++;
-      bool add = true;
-      for (auto jt = (*it)->head->incoming.begin(); jt != (*it)->head->incoming.end(); jt++) {
-        if (!(*jt)->is_marked()) {
-          add = false;
-          break;
+  auto p = root;
+  (**p).mark = 0; // is_marked()==true
+  auto to = nodes.begin();
+  while (to != nodes.end()) {
+
+    for (auto it = nodes.begin(); it != nodes.end(); ++it) cout << (**it).id << " ";
+    cout << endl;
+
+    if ((**p).is_marked()) {
+      // explore edges
+      for (auto e = (**p).outgoing.begin(); e!=(**p).outgoing.end(); ++e) {
+        (**e).mark++;
+        if ((**e).is_marked()) {
+          (**e).head->mark++;
         }
       }
-      if (add==true)  {
-        tmp.push_back( (*it)->head );
-        cout << " " <<  (*it)->head->id<< endl;
-      }
+    }
+    if ((**p).is_marked()) {
+      nodes.splice(to, nodes, p);
+      to = next(p);
+      p = to;
+    } else {
+      ++p;
+      /*if (p == nodes.end()) {
+        for (auto e = (**to).outgoing.begin(); e!=(**to).outgoing.end(); ++e) {
+          // explore edges
+          (**e).mark++;
+          if ((**e).is_marked()) {
+            (**e).head->mark++;
+          }
+        }
+        to++;
+        p = to;
+      }*/
     }
   }
-  return sorted;
 }
 
-void
+/*void
 init(vector<Node*>& nodes, ViterbiSemiring<double>& semiring, Node* root)
 {
   for (auto it = nodes.begin(); it != nodes.end(); ++it)
@@ -139,7 +124,7 @@ viterbi(vector<Node*>& nodes, map<unsigned int, Hg::Node*> nodes_by_id, Node* ro
   ViterbiSemiring<double> semiring;
 
   init(sorted, semiring, root);
-  
+
   for (auto n_it = sorted.begin(); n_it != sorted.end(); ++n_it) {
     for (auto e_it = (*n_it)->incoming.begin(); e_it != (*n_it)->incoming.end(); ++e_it) {
       cout << (*e_it)->s() << endl;
@@ -154,7 +139,7 @@ viterbi(vector<Node*>& nodes, map<unsigned int, Hg::Node*> nodes_by_id, Node* ro
   for (auto it = sorted.begin(); it != sorted.end(); ++it) {
     cout << (*it)->id << " " <<  (*it)->score << endl;
   }
-}
+}*/
 
 
 } // namespace
