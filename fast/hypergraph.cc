@@ -75,10 +75,6 @@ topological_sort(list<Node*>& nodes, list<Node*>::iterator root)
   (**p).mark = 0; // is_marked()==true
   auto to = nodes.begin();
   while (to != nodes.end()) {
-
-    for (auto it = nodes.begin(); it != nodes.end(); ++it) cout << (**it).id << " ";
-    cout << endl;
-
     if ((**p).is_marked()) {
       // explore edges
       for (auto e = (**p).outgoing.begin(); e!=(**p).outgoing.end(); ++e) {
@@ -94,17 +90,6 @@ topological_sort(list<Node*>& nodes, list<Node*>::iterator root)
       p = to;
     } else {
       ++p;
-      /*if (p == nodes.end()) {
-        for (auto e = (**to).outgoing.begin(); e!=(**to).outgoing.end(); ++e) {
-          // explore edges
-          (**e).mark++;
-          if ((**e).is_marked()) {
-            (**e).head->mark++;
-          }
-        }
-        to++;
-        p = to;
-      }*/
     }
   }
 }
