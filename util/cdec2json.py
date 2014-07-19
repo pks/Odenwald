@@ -25,7 +25,7 @@ def hg2json(hg, weights):
   a = []
   a.append( '{ "id":0, "cat":"root", "span":[-1,-1] }' )
   for i in hg.nodes:
-    a.append('{ "id":%d, "cat":"%s", "span":[%d,%d] }'%(i.id, i.cat, i.span[0], i.span[1]))
+    a.append('{ "id":%d, "cat":"%s", "span":[%d,%d] }'%(i.id+1, i.cat, i.span[0], i.span[1]))
   res += ",\n".join(a)+"\n"
   res += "],\n"
   res += '"edges":'+"\n"

@@ -1,5 +1,4 @@
-#ifndef GRAMMAR_HH
-#define GRAMMAR_HH
+#pragma once
 
 #include <string>
 #include <sstream>
@@ -28,6 +27,4 @@ class Rule {
 
 
 } // namespace
-
-#endif
 

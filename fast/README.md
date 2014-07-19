@@ -7,3 +7,8 @@ TODO
   * hg: json input (jsoncpp?)
   * language model: kenlm
 
+depends on msgpack [1]
+http://jscheiny.github.io/Streams/
+
+[1] http://msgpack.org
+

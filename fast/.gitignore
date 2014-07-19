@@ -1,3 +1,5 @@
 fast_weaver
-hypergraph.o
-msgpack-c/
+*.o
+data
+make_paks
+read_pak
