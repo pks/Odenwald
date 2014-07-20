@@ -12,6 +12,8 @@ def main
   #hypergraph, nodes_by_id = HG::read_hypergraph_from_json('../example/3/3.json', semiring, true)
   path, score = HG::viterbi_path hypergraph, nodes_by_id[-1], semiring
   s = HG::derive path, path.last.head, []
+  hypergraph.nodes.each { |i| puts "#{i.id} #{i.score}" }
+  puts "---"
   puts "#{s.map { |i| i.word }.join ' '}"
   puts Math.log score
   puts

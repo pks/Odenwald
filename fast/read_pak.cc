@@ -1,6 +1,6 @@
-#include <msgpack.hpp>
 #include <iostream>
 #include <fstream>
+#include <msgpack.hpp>
 
 using namespace std;
 
@@ -20,7 +20,8 @@ main(int argc, char** argv)
       msgpack::object o = result.get();
       cout << o << endl;
     }
-
     if (!bytes) break;
   }
+
+  return 0;
 }

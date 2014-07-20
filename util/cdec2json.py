@@ -33,7 +33,7 @@ def hg2json(hg, weights):
   a = []
   for i in hg.edges:
     s = "{"
-    s += '"head":%d'%(i.head_node.id)
+    s += '"head":%d'%(i.head_node.id+1)
     s += ', "rule":%s'%(json.dumps(str(i.trule)))
     # f
     xs = ' "f":{'

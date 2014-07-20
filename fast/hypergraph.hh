@@ -1,7 +1,5 @@
 #pragma once
 
-#include "grammar.hh"
-#include "semiring.hh"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -12,17 +10,19 @@
 #include <algorithm>
 #include <iterator>
 #include <fstream>
-
-#include "dummyvector.h"
 #include <msgpack.hpp>
+
+#include "grammar.hh"
+#include "semiring.hh"
+#include "dummyvector.h"
 
 using namespace std;
 
 typedef double score_t;
 typedef double weight_t;
 
-namespace Hg {
 
+namespace Hg {
 
 struct Node;
 
@@ -31,11 +31,11 @@ struct Edge {
      vector<Node*> tails;
            score_t score;
             string rule; //FIXME
-       DummyVector f; //FIXME
+       DummyVector f;    //FIXME
       unsigned int arity;
-      unsigned int mark;
+      unsigned int mark = 0;
 
-  bool is_marked();
+  inline bool is_marked() { return mark >= arity; }
   friend std::ostream& operator<<(std::ostream& os, const Edge& s);
 
           size_t head_id_;
@@ -47,19 +47,17 @@ struct Edge {
 struct Node {
           size_t id;
           string symbol;
-  unsigned short left;
-  unsigned short right;
+           short left;
+           short right;
          score_t score;
    vector<Edge*> incoming;
    vector<Edge*> outgoing;
     unsigned int mark;
 
-  bool is_marked();
+  inline bool is_marked() { return mark >= incoming.size(); };
   friend std::ostream& operator<<(std::ostream& os, const Node& n);
 
-  vector<size_t> incoming_ids_; // edge ids
-  vector<size_t> outgoing_ids_; // edge ids
-  MSGPACK_DEFINE(id, symbol, left, right, score, incoming_ids_, outgoing_ids_);
+  MSGPACK_DEFINE(id, symbol, left, right, score);
 };
 
 struct Hypergraph {
@@ -95,7 +93,6 @@ void
 manual(Hypergraph& hg);
 
 } // namespace
-
 
 } // namespace
 
