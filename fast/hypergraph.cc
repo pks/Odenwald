@@ -140,7 +140,7 @@ read(Hypergraph& hg, string fn)
       } else if (i > 1 && i <= nn) {
         Node* n = new Node;
         o.convert(n);
-        hg.nodes.push_front(n); // FIXME
+        hg.nodes.push_back(n);
         hg.nodes_by_id[n->id] = n;
       } else if (i > nn && i <= nn+ne+1) {
         Edge* e = new Edge;
