@@ -32,7 +32,7 @@ struct Edge {
            score_t score;
             string rule; //FIXME
        DummyVector f;    //FIXME
-      unsigned int arity;
+      unsigned int arity = 0;
       unsigned int mark = 0;
 
   inline bool is_marked() { return mark >= arity; }

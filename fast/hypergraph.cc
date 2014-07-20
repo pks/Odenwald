@@ -74,9 +74,11 @@ topological_sort(list<Node*>& nodes, list<Node*>::iterator root)
   auto to = nodes.begin();
   while (to != nodes.end()) {
     if ((**p).is_marked()) {
+      cout << **p<< endl;
       // explore edges
       for (auto e = (**p).outgoing.begin(); e!=(**p).outgoing.end(); ++e) {
         (**e).mark++;
+        cout << " " << **e << endl;
         if ((**e).is_marked()) {
           (**e).head->mark++;
         }
@@ -88,10 +90,17 @@ topological_sort(list<Node*>& nodes, list<Node*>::iterator root)
       p = to;
     } else {
       ++p;
-      if (p == nodes.end()) {
-        p = next(to);
+      /*if (p == nodes.end()) {
+        for (auto e = (**to).outgoing.begin(); e!=(**to).outgoing.end(); ++e) {
+          // explore edges
+          (**e).mark++;
+          if ((**e).is_marked()) {
+            (**e).head->mark++;
+          }
+        }
         to = next(to);
-      }
+        p = to;
+      }*/
     }
   }
   cout << "---" << endl;
@@ -151,6 +160,7 @@ read(Hypergraph& hg, string fn)
         e->head = hg.nodes_by_id[e->head_id_];
         hg.edges.push_back(e);
         hg.nodes_by_id[e->head_id_]->incoming.push_back(e);
+        e->arity = 0;
         for (auto it = e->tails_ids_.begin(); it != e->tails_ids_.end(); ++it) {
           hg.nodes_by_id[*it]->outgoing.push_back(e);
           e->tails.push_back(hg.nodes_by_id[*it]);

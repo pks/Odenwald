@@ -1,13 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <unordered_map>
 #include <msgpack.hpp>
 #include <msgpack/fbuffer.hpp>
 
 #include "json-cpp.hpp"
-#include "dummyvector.h"
-#include "hypergraph.hh"
+#include "../fast/dummyvector.h"
+#include "../fast/hypergraph.hh"
 
 using namespace std;
 
@@ -73,16 +72,16 @@ main(int argc, char** argv)
   jsoncpp::parse(hg, json_str);
 
   // convert objects
-  vector<Hg::Node*> nodes_;
+  vector<Hg::Node*> nodes_conv;
   for (auto it = hg.nodes.begin(); it != hg.nodes.end(); ++it) {
     Hg::Node* n = new Hg::Node;
     n->id = it->id;
     n->symbol = it->cat;
     n->left = it->span[0];
     n->right = it->span[1];
-    nodes_.push_back(n);
+    nodes_conv.push_back(n);
   }
-  vector<Hg::Edge*> edges_;
+  vector<Hg::Edge*> edges_conv;
   for (auto it = hg.edges.begin(); it != hg.edges.end(); ++it) {
     Hg::Edge* e = new Hg::Edge;
     e->head_id_ = it->head;
@@ -90,7 +89,7 @@ main(int argc, char** argv)
     e->score = it->weight;
     e->rule = it->rule;
     e->f = it->f;
-    edges_.push_back(e);
+    edges_conv.push_back(e);
   }
 
   // write to msgpack
@@ -98,11 +97,10 @@ main(int argc, char** argv)
   msgpack::fbuffer fbuf(file);
   msgpack::pack(fbuf, hg.nodes.size());
   msgpack::pack(fbuf, hg.edges.size());
-  for (auto it = nodes_.begin(); it != nodes_.end(); ++it)
+  for (auto it = nodes_conv.begin(); it != nodes_conv.end(); ++it)
     msgpack::pack(fbuf, **it);
-  for (auto it = edges_.begin(); it != edges_.end(); ++it)
+  for (auto it = edges_conv.begin(); it != edges_conv.end(); ++it)
     msgpack::pack(fbuf, **it);
-
   fclose(file);
 
   return 0;
