@@ -1,30 +1,23 @@
 #pragma once
 
 #include <string>
-#include <sstream>
 
 using namespace std;
 
-namespace Grammar {
 
+namespace G {
 
-class NT {
-  public:
-    string       symbol;
-    unsigned int index;
-
-    string s();
+struct NT {
+        string symbol;
+  unsigned int index;
 };
 
 class T {
-  public:
-    string word;
+  string word;
 };
 
 class Rule {
-  public:
 };
-
 
 } // namespace
 

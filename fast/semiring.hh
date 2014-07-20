@@ -1,7 +1,7 @@
 #pragma once
 
-namespace Semiring {
 
+namespace Semiring {
 
 template<typename T>
 struct Viterbi {
@@ -30,7 +30,6 @@ Viterbi<T>::convert(T x)
 {
   return (T)x;
 }
-
 
 } // namespace
 

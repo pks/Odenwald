@@ -29,7 +29,7 @@ std::ostream&
 operator<<(std::ostream& os, const Edge& e)
 {
   ostringstream _;
-  for (auto it = e.tails.begin(); it != e.tails.end(); ++it) {
+  for (auto it = e.tails.begin(); it != e.tails.end(); it++) {
     _ << (**it).id; if (*it != e.tails.back()) _ << ",";
   }
   os << \
@@ -50,16 +50,16 @@ operator<<(std::ostream& os, const Edge& e)
 void
 reset(list<Node*> nodes, vector<Edge*> edges)
 {
-  for (auto it = nodes.begin(); it != nodes.end(); ++it)
+  for (auto it = nodes.begin(); it != nodes.end(); it++)
     (**it).mark = 0;
-  for (auto it = edges.begin(); it != edges.end(); ++it)
+  for (auto it = edges.begin(); it != edges.end(); it++)
     (**it).mark = 0;
 }
 
 template<typename Semiring>  void
 init(list<Node*>& nodes, list<Node*>::iterator root, Semiring& semiring)
 {
-  for (auto it = nodes.begin(); it != nodes.end(); ++it)
+  for (auto it = nodes.begin(); it != nodes.end(); it++)
     (**it).score = semiring.null;
   (**root).score = semiring.one;
 }
@@ -76,7 +76,7 @@ topological_sort(list<Node*>& nodes, list<Node*>::iterator root)
     if ((**p).is_marked()) {
       cout << **p<< endl;
       // explore edges
-      for (auto e = (**p).outgoing.begin(); e!=(**p).outgoing.end(); ++e) {
+      for (auto e = (**p).outgoing.begin(); e!=(**p).outgoing.end(); e++) {
         (**e).mark++;
         cout << " " << **e << endl;
         if ((**e).is_marked()) {
@@ -86,21 +86,10 @@ topological_sort(list<Node*>& nodes, list<Node*>::iterator root)
     }
     if ((**p).is_marked()) {
       nodes.splice(to, nodes, p);
-      to = next(p);
+      to++;
       p = to;
     } else {
       ++p;
-      /*if (p == nodes.end()) {
-        for (auto e = (**to).outgoing.begin(); e!=(**to).outgoing.end(); ++e) {
-          // explore edges
-          (**e).mark++;
-          if ((**e).is_marked()) {
-            (**e).head->mark++;
-          }
-        }
-        to = next(to);
-        p = to;
-      }*/
     }
   }
   cout << "---" << endl;
@@ -116,10 +105,10 @@ viterbi(Hypergraph& hg)
   Hg::topological_sort(hg.nodes, root);
   Semiring::Viterbi<double> semiring;
   Hg::init(hg.nodes, root, semiring);
-  for (auto n = hg.nodes.begin(); n != hg.nodes.end(); ++n) {
-    for (auto e = (**n).incoming.begin(); e != (**n).incoming.end(); ++e) {
+  for (auto n = hg.nodes.begin(); n != hg.nodes.end(); n++) {
+    for (auto e = (**n).incoming.begin(); e != (**n).incoming.end(); e++) {
       double s = semiring.one;
-      for (auto m = (**e).tails.begin(); m != (**e).tails.end(); ++m) {
+      for (auto m = (**e).tails.begin(); m != (**e).tails.end(); m++) {
         s = semiring.multiply(s, (**m).score);
       }
       (**n).score = semiring.add((**n).score, semiring.multiply(s, (**e).score));
@@ -161,7 +150,7 @@ read(Hypergraph& hg, string fn)
         hg.edges.push_back(e);
         hg.nodes_by_id[e->head_id_]->incoming.push_back(e);
         e->arity = 0;
-        for (auto it = e->tails_ids_.begin(); it != e->tails_ids_.end(); ++it) {
+        for (auto it = e->tails_ids_.begin(); it != e->tails_ids_.end(); it++) {
           hg.nodes_by_id[*it]->outgoing.push_back(e);
           e->tails.push_back(hg.nodes_by_id[*it]);
           e->arity++;
