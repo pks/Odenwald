@@ -1,16 +1,22 @@
 COMPILER=clang
-CFLAGS=-O3
+CFLAGS=-std=c++11 -O3
 
 
 all: hypergraph.o main.cc
-	$(COMPILER) $(CFLAGS) -std=c++11 -lstdc++ -lm -lmsgpack hypergraph.o main.cc -o fast_weaver
+	$(COMPILER) $(CFLAGS) -std=c++11 -lstdc++ -lm -lmsgpack grammar.o hypergraph.o main.cc -o fast_weaver
 
 hypergraph.o: hypergraph.cc hypergraph.hh grammar.o semiring.hh
-	$(COMPILER) $(CFLAGS) -g -std=c++11 -c hypergraph.cc
+	$(COMPILER) $(CFLAGS) -g -c hypergraph.cc
 
 grammar.o: grammar.cc grammar.hh
-	$(COMPILER) $(CFLAGS) -g -std=c++11 -c grammar.cc
+	$(COMPILER) $(CFLAGS) -g -c grammar.cc
+
+test_grammar: test_grammar.cc grammar.o
+	$(COMPILER) $(CFLAGS) -lstdc++ -lm grammar.o test_grammar.cc -o test_grammar
+
+test_sparse_vector: test_sparse_vector.cc sparse_vector.hh
+	$(COMPILER) $(CFLAGS) -lstdc++ -lm test_sparse_vector.cc -o test_sparse_vector
 
 clean:
-	rm -f fast_weaver hypergraph.o grammar.o
+	rm -f fast_weaver hypergraph.o grammar.o test_grammar test_sparse_vector
 

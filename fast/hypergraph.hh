@@ -31,18 +31,17 @@ struct Edge {
              Node* head;
      vector<Node*> tails;
            score_t score;
-            string rule; //FIXME
-       DummyVector f;    //FIXME
+            string rule; // FIXME
       unsigned int arity = 0;
       unsigned int mark = 0;
 
   inline bool is_marked() { return mark >= arity; }
-  friend std::ostream& operator<<(std::ostream& os, const Edge& s);
+  friend ostream& operator<<(ostream& os, const Edge& s);
 
           size_t head_id_;
   vector<size_t> tails_ids_; // node ids
 
-  MSGPACK_DEFINE(head_id_, tails_ids_, score, f, arity);
+  MSGPACK_DEFINE(head_id_, tails_ids_, rule, score, arity);
 };
 
 struct Node {
@@ -56,7 +55,7 @@ struct Node {
     unsigned int mark;
 
   inline bool is_marked() { return mark >= incoming.size(); };
-  friend std::ostream& operator<<(std::ostream& os, const Node& n);
+  friend ostream& operator<<(ostream& os, const Node& n);
 
   MSGPACK_DEFINE(id, symbol, left, right, score);
 };
@@ -66,8 +65,6 @@ struct Hypergraph {
                  vector<Edge*> edges;
   unordered_map<size_t, Node*> nodes_by_id;
                   unsigned int arity;
-
-  void add_node(Node* n) { nodes.push_back(n); nodes_by_id[n->id] = n; }
 };
 
 void

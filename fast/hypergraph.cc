@@ -3,36 +3,12 @@
 
 namespace Hg {
 
-std::ostream&
-operator<<(std::ostream& os, const Node& n)
+template<typename Semiring>  void
+init(list<Node*>& nodes, list<Node*>::iterator root, Semiring& semiring)
 {
-  os << \
-    "Node<id=" << n.id << \
-    ", symbol='" << n.symbol << "'" << \
-    ", span=(" << n.left << "," << n.right << ")" \
-    ", score=" << n.score << \
-    ", incoming:" << n.incoming.size() << \
-    ", outgoing:" << n.outgoing.size() << \
-    ", mark=" << n.mark << ">";
-  return os;
-}
-
-std::ostream&
-operator<<(std::ostream& os, const Edge& e)
-{
-  ostringstream _;
-  for (auto it = e.tails.begin(); it != e.tails.end(); it++) {
-    _ << (**it).id; if (*it != e.tails.back()) _ << ",";
-  }
-  os << \
-    "Edge<head=" << e.head->id << \
-    ", tails=[" << _.str() << "]" \
-    ", score=" << e.score << \
-    ", rule:'" << "TODO" << "'" <<  \
-    ", f=" << "TODO" << \
-    ", arity=" << e.arity << \
-    ", mark=" << e.mark << ">";
-  return os;
+  for (auto it = nodes.begin(); it != nodes.end(); it++)
+    (**it).score = semiring.null;
+  (**root).score = semiring.one;
 }
 
 void
@@ -42,14 +18,6 @@ reset(list<Node*> nodes, vector<Edge*> edges)
     (**it).mark = 0;
   for (auto it = edges.begin(); it != edges.end(); it++)
     (**it).mark = 0;
-}
-
-template<typename Semiring>  void
-init(list<Node*>& nodes, list<Node*>::iterator root, Semiring& semiring)
-{
-  for (auto it = nodes.begin(); it != nodes.end(); it++)
-    (**it).score = semiring.null;
-  (**root).score = semiring.one;
 }
 
 void
@@ -162,22 +130,21 @@ manual(Hypergraph& hg)
 {
   // nodes
   Node* a = new Node; a->id = 0; a->symbol = "root"; a->left = -1;    a->right = -1; a->mark = 0;
+  hg.nodes.push_back(a); hg.nodes_by_id[a->id] = a;
   Node* b = new Node; b->id = 1; b->symbol = "NP";   b->left = 0;     b->right = 1;  b->mark = 0;
+  hg.nodes.push_back(b); hg.nodes_by_id[b->id] = b;
   Node* c = new Node; c->id = 2; c->symbol = "V";    c->left = 1;     c->right = 2;  c->mark = 0;
+  hg.nodes.push_back(c); hg.nodes_by_id[c->id] = c;
   Node* d = new Node; d->id = 3; d->symbol = "JJ";   d->left = 3;     d->right = 4;  d->mark = 0;
+  hg.nodes.push_back(d); hg.nodes_by_id[d->id] = d;
   Node* e = new Node; e->id = 4; e->symbol = "NN";   e->left = 3;     e->right = 5;  e->mark = 0;
+  hg.nodes.push_back(e); hg.nodes_by_id[e->id] = e;
   Node* f = new Node; f->id = 5; f->symbol = "NP";   f->left = 2;     f->right = 5;  f->mark = 0;
+  hg.nodes.push_back(f); hg.nodes_by_id[f->id] = f;
   Node* g = new Node; g->id = 6; g->symbol = "NP";   g->left = 1;     g->right = 5;  g->mark = 0;
+  hg.nodes.push_back(g); hg.nodes_by_id[g->id] = g;
   Node* h = new Node; h->id = 7; h->symbol = "S";    h->left = 0;     h->right = 6;  h->mark = 0;
-
-  hg.add_node(a);
-  hg.add_node(b);
-  hg.add_node(c);
-  hg.add_node(d);
-  hg.add_node(e);
-  hg.add_node(f);
-  hg.add_node(g);
-  hg.add_node(h);
+  hg.nodes.push_back(h); hg.nodes_by_id[h->id] = h;
 
   // edges
   Edge* q = new Edge; q->head = hg.nodes_by_id[1]; q->tails.push_back(hg.nodes_by_id[0]); q->score = 0.367879441171;
@@ -250,6 +217,38 @@ manual(Hypergraph& hg)
 }
 
 } // namespace
+
+ostream&
+operator<<(ostream& os, const Node& n)
+{
+  os << \
+    "Node<id=" << n.id << \
+    ", symbol='" << n.symbol << "'" << \
+    ", span=(" << n.left << "," << n.right << ")" \
+    ", score=" << n.score << \
+    ", incoming:" << n.incoming.size() << \
+    ", outgoing:" << n.outgoing.size() << \
+    ", mark=" << n.mark << ">";
+  return os;
+}
+
+ostream&
+operator<<(ostream& os, const Edge& e)
+{
+  ostringstream _;
+  for (auto it = e.tails.begin(); it != e.tails.end(); it++) {
+    _ << (**it).id; if (*it != e.tails.back()) _ << ",";
+  }
+  os << \
+    "Edge<head=" << e.head->id << \
+    ", tails=[" << _.str() << "]" \
+    ", score=" << e.score << \
+    ", rule:'" << "TODO" << "'" <<  \
+    ", f=" << "TODO" << \
+    ", arity=" << e.arity << \
+    ", mark=" << e.mark << ">";
+  return os;
+}
 
 } // namespace
 

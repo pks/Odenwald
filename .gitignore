@@ -1,5 +1,7 @@
 *.o
 fast/example/
 fast/fast_weaver
+fast/test_grammar
+fast/test_sparse_vector
 util/make_pak
 util/read_pak
