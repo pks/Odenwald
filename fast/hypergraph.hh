@@ -11,6 +11,7 @@
 #include <iterator>
 #include <fstream>
 #include <msgpack.hpp>
+#include <msgpack/fbuffer.hpp>
 
 #include "grammar.hh"
 #include "semiring.hh"

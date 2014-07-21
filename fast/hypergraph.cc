@@ -3,10 +3,6 @@
 
 namespace Hg {
 
-/*
- * Node
- *
- */
 std::ostream&
 operator<<(std::ostream& os, const Node& n)
 {
@@ -21,10 +17,6 @@ operator<<(std::ostream& os, const Node& n)
   return os;
 }
 
-/*
- * Edge
- *
- */
 std::ostream&
 operator<<(std::ostream& os, const Edge& e)
 {
@@ -43,10 +35,6 @@ operator<<(std::ostream& os, const Edge& e)
   return os;
 }
 
-/*
- * functions
- *
- */
 void
 reset(list<Node*> nodes, vector<Edge*> edges)
 {
@@ -67,18 +55,13 @@ init(list<Node*>& nodes, list<Node*>::iterator root, Semiring& semiring)
 void
 topological_sort(list<Node*>& nodes, list<Node*>::iterator root)
 {
-  cout << "root " << **root << endl;
-  for (auto it = nodes.begin(); it != nodes.end(); it++)
-    cout << (**it).id << endl;
   auto p = root;
   auto to = nodes.begin();
   while (to != nodes.end()) {
     if ((**p).is_marked()) {
-      cout << **p<< endl;
       // explore edges
       for (auto e = (**p).outgoing.begin(); e!=(**p).outgoing.end(); e++) {
         (**e).mark++;
-        cout << " " << **e << endl;
         if ((**e).is_marked()) {
           (**e).head->mark++;
         }
@@ -92,16 +75,14 @@ topological_sort(list<Node*>& nodes, list<Node*>::iterator root)
       ++p;
     }
   }
-  cout << "---" << endl;
-  for (auto it = nodes.begin(); it != nodes.end(); it++)
-    cout << (**it).id << endl;
 }
 
 void
 viterbi(Hypergraph& hg)
 {
   list<Node*>::iterator root = \
-    find_if(hg.nodes.begin(), hg.nodes.end(), [](Node* n) { return n->incoming.size() == 0; });
+    find_if(hg.nodes.begin(), hg.nodes.end(), \
+    [](Node* n) { return n->incoming.size() == 0; });
   Hg::topological_sort(hg.nodes, root);
   Semiring::Viterbi<double> semiring;
   Hg::init(hg.nodes, root, semiring);
@@ -165,17 +146,15 @@ read(Hypergraph& hg, string fn)
 void
 write(Hypergraph& hg, string fn)
 {
-  /*FILE* file = fopen(argv[2], "wb");
+  FILE* file = fopen(fn.c_str(), "wb");
   msgpack::fbuffer fbuf(file);
   msgpack::pack(fbuf, hg.nodes.size());
   msgpack::pack(fbuf, hg.edges.size());
-  msgpack::pack(fbuf, hg.weights);
   for (auto it = hg.nodes.begin(); it != hg.nodes.end(); it++)
-    msgpack::pack(fbuf, *it);
+    msgpack::pack(fbuf, **it);
   for (auto it = hg.edges.begin(); it != hg.edges.end(); it++)
-    msgpack::pack(fbuf, *it);
-
-  fclose(file);*/
+    msgpack::pack(fbuf, **it);
+  fclose(file);
 }
 
 void
@@ -191,6 +170,7 @@ manual(Hypergraph& hg)
   Node* g = new Node; g->id = 6; g->symbol = "NP";   g->left = 1;     g->right = 5;  g->mark = 0;
   Node* h = new Node; h->id = 7; h->symbol = "S";    h->left = 0;     h->right = 6;  h->mark = 0;
 
+  hg.add_node(a);
   hg.add_node(b);
   hg.add_node(c);
   hg.add_node(d);
@@ -198,7 +178,6 @@ manual(Hypergraph& hg)
   hg.add_node(f);
   hg.add_node(g);
   hg.add_node(h);
-  hg.add_node(a);
 
   // edges
   Edge* q = new Edge; q->head = hg.nodes_by_id[1]; q->tails.push_back(hg.nodes_by_id[0]); q->score = 0.367879441171;
