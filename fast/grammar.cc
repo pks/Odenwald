@@ -158,5 +158,5 @@ operator<<(ostream& os, const Grammar& g)
   return os;
 }
 
-} // namespace
+} // namespace G
 

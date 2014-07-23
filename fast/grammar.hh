@@ -73,5 +73,5 @@ struct Grammar {
   friend ostream& operator<<(ostream& os, const Grammar& g);
 };
 
-} // namespace
+} // namespace G
 
