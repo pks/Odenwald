@@ -68,10 +68,10 @@ viterbi(Hypergraph& hg)
 namespace io {
 
 void
-read(Hypergraph& hg, string fn)
+read(Hypergraph& hg, vector<G::Rule*> rules, string fn)
 {
   ifstream ifs(fn);
-  size_t i = 0, nn, ne;
+  size_t i = 0, nr, nn, ne;
   msgpack::unpacker pac;
   while(true) {
     pac.reserve_buffer(32*1024);
@@ -112,15 +112,18 @@ read(Hypergraph& hg, string fn)
 }
 
 void
-write(Hypergraph& hg, string fn)
+write(Hypergraph& hg, vector<G::Rule*> rules, string fn)
 {
   FILE* file = fopen(fn.c_str(), "wb");
   msgpack::fbuffer fbuf(file);
+  msgpack::pack(fbuf, rules.size());
   msgpack::pack(fbuf, hg.nodes.size());
   msgpack::pack(fbuf, hg.edges.size());
-  for (auto it = hg.nodes.begin(); it != hg.nodes.end(); it++)
+  for (auto it = rules.cbegin(); it != rules.cend(); it++)
     msgpack::pack(fbuf, **it);
-  for (auto it = hg.edges.begin(); it != hg.edges.end(); it++)
+  for (auto it = hg.nodes.cbegin(); it != hg.nodes.cend(); it++)
+    msgpack::pack(fbuf, **it);
+  for (auto it = hg.edges.cbegin(); it != hg.edges.cend(); it++)
     msgpack::pack(fbuf, **it);
   fclose(file);
 }
@@ -216,7 +219,7 @@ manual(Hypergraph& hg)
   hg.nodes_by_id[6]->outgoing.push_back(z);
 }
 
-} // namespace
+} // namespace Hg::io
 
 ostream&
 operator<<(ostream& os, const Node& n)
@@ -243,12 +246,12 @@ operator<<(ostream& os, const Edge& e)
     "Edge<head=" << e.head->id << \
     ", tails=[" << _.str() << "]" \
     ", score=" << e.score << \
-    ", rule:'" << "TODO" << "'" <<  \
+    ", rule:'" << e.rule->escaped() << "'" <<  \
     ", f=" << "TODO" << \
     ", arity=" << e.arity << \
     ", mark=" << e.mark << ">";
   return os;
 }
 
-} // namespace
+} // namespace Hg
 

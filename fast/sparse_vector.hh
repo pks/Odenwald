@@ -4,7 +4,8 @@
 #include <vector>
 #include <sstream>
 
-#include "hypergraph.hh" // FIXME
+typedef double score_t; // FIXME
+typedef double weight_t;
 
 using namespace std;
 

@@ -1,6 +1,25 @@
 #include "grammar.hh"
 
 
+string
+esc_str(const string& s) { // FIXME
+  ostringstream os;
+  for (auto it = s.cbegin(); it != s.cend(); it++) {
+    switch (*it) {
+      case '"':  os << "\\\""; break;
+      case '\\': os << "\\\\"; break;
+      case '\b': os << "\\b";  break;
+      case '\f': os << "\\f";  break;
+      case '\n': os << "\\n";  break;
+      case '\r': os << "\\r";  break;
+      case '\t': os << "\\t";  break;
+      default:   os << *it;    break;
+    }
+  }
+
+  return os.str();
+}
+
 namespace G {
 
 NT::NT(string& s)
@@ -84,6 +103,19 @@ Item::repr() const
     os << t->repr();
   else
     os << nt->repr();
+
+  return os.str();
+}
+
+string
+Item::escaped() const
+{
+  ostringstream os;
+  if (type == TERMINAL)
+    os << t->escaped();
+  else
+    os << nt->escaped();
+
   return os.str();
 }
 
@@ -98,6 +130,19 @@ NT::repr() const
 {
   ostringstream os;
   os << "NT<" << symbol << "," << index << ">";
+
+  return os.str();
+}
+
+string
+NT::escaped() const
+{
+  ostringstream os;
+  os << "[" << symbol;
+  if (index > 0)
+    os << "," << index;
+  os << "]";
+
   return os.str();
 }
 
@@ -112,6 +157,7 @@ T::repr() const
 {
   ostringstream os;
   os << "T<" << word << ">";
+
   return os.str();
 }
 
@@ -141,6 +187,7 @@ Rule::repr() const
    ", arity=" << arity << \
    ", map:" << "TODO" << \
    ">";
+
   return os.str();
 }
 
@@ -150,11 +197,34 @@ operator<<(ostream& os, const Rule& r)
   return os << r.repr();
 }
 
+string
+Rule::escaped() const
+{
+  ostringstream os;
+  os << lhs->escaped() << " ||| ";
+  for (auto it = rhs.begin(); it != rhs.end(); it++) {
+    os << (**it).escaped();
+    if (next(it) != rhs.end()) os << " ";
+  }
+  os << " ||| ";
+  for (auto it = target.begin(); it != target.end(); it++) {
+    os << (**it).escaped();
+    if (next(it) != target.end()) os << " ";
+  }
+  os << " ||| ";
+  os << "TODO";
+  os << " ||| ";
+  os << "TODO";
+
+  return os.str();
+}
+
 ostream&
 operator<<(ostream& os, const Grammar& g)
 {
   for (auto it = g.rules.begin(); it != g.rules.end(); it++)
     os << (**it).repr() << endl;
+
   return os;
 }
 

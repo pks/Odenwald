@@ -12,6 +12,8 @@
 using namespace std;
 
 
+string esc_str(const string& s); // FIXME
+
 namespace G {
 
 struct NT {
@@ -21,6 +23,7 @@ struct NT {
   NT() {};
   NT(string& s);
   string repr() const;
+  string escaped() const;
   friend ostream& operator<<(ostream& os, const NT& t);
 };
 
@@ -29,6 +32,7 @@ struct T {
 
   T(string& s);
   string repr() const;
+  string escaped() const { return esc_str(word); }
   friend ostream& operator<<(ostream& os, const NT& nt);
 };
 
@@ -44,6 +48,7 @@ struct Item {
 
   Item(string& s);
   string repr() const;
+  string escaped() const;
   friend ostream& operator<<(ostream& os, const Item& i);
 };
 
@@ -58,7 +63,10 @@ struct Rule {
   Rule() {};
   Rule(string& s);
   string repr() const;
+  string escaped() const;
   friend ostream& operator<<(ostream& os, const Rule& r);
+
+  MSGPACK_DEFINE();
 };
 
 struct Grammar {

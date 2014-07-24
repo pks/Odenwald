@@ -16,6 +16,7 @@
 #include "grammar.hh"
 #include "semiring.hh"
 #include "dummyvector.h"
+#include "sparse_vector.hh"
 
 using namespace std;
 
@@ -31,7 +32,7 @@ struct Edge {
              Node* head;
      vector<Node*> tails;
            score_t score;
-            string rule; // FIXME
+          G::Rule* rule;
       unsigned int arity = 0;
       unsigned int mark = 0;
 
@@ -40,8 +41,9 @@ struct Edge {
 
           size_t head_id_;
   vector<size_t> tails_ids_; // node ids
+          size_t rule_id_;
 
-  MSGPACK_DEFINE(head_id_, tails_ids_, rule, score, arity);
+  MSGPACK_DEFINE(head_id_, tails_ids_, rule_id_, score, arity);
 };
 
 struct Node {
@@ -82,10 +84,10 @@ viterbi(Hypergraph& hg);
 namespace io {
 
 void
-read(Hypergraph& hg, string fn);
+read(Hypergraph& hg, vector<G::Rule*> rules, string fn);
 
 void
-write(Hypergraph& hg, string fn);
+write(Hypergraph& hg, vector<G::Rule*> rules, string fn);
 
 void
 manual(Hypergraph& hg);
