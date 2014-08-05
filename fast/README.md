@@ -30,3 +30,5 @@ http://bytes.com/topic/c/answers/702569-blas-vs-cblas-c
 http://www.netlib.org/lapack/#_standard_c_language_apis_for_lapack
 http://www.osl.iu.edu/research/mtl/download.php3
 http://scicomp.stackexchange.com/questions/351/recommendations-for-a-usable-fast-c-matrix-library
+
+http://goog-perftools.sourceforge.net/doc/tcmalloc.html

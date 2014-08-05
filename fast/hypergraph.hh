@@ -1,27 +1,24 @@
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <list>
-#include <unordered_map>
-#include <functional>
 #include <algorithm>
-#include <iterator>
 #include <fstream>
+#include <functional>
+#include <iostream>
+#include <iterator>
+#include <list>
 #include <msgpack.hpp>
 #include <msgpack/fbuffer.hpp>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "grammar.hh"
 #include "semiring.hh"
-#include "dummyvector.h"
 #include "sparse_vector.hh"
+#include "weaver.hh"
 
 using namespace std;
-
-typedef double score_t;
-typedef double weight_t;
 
 
 namespace Hg {
@@ -69,28 +66,36 @@ struct Hypergraph {
                   unsigned int arity;
 };
 
-void
-reset();
-
 template<typename Semiring> void
-init(list<Node*>& nodes, list<Node*>::iterator root, Semiring& semiring);
+init(const list<Node*>& nodes, const list<Node*>::iterator root, const Semiring& semiring);
 
 void
-topological_sort(list<Node*>& nodes, list<Node*>::iterator root);
+reset(const list<Node*> nodes, const vector<Edge*> edges);
+
+void
+topological_sort(list<Node*>& nodes, const list<Node*>::iterator root);
 
 void
 viterbi(Hypergraph& hg);
 
+typedef vector<Edge*> Path;
+
+void
+viterbi_path(Hypergraph& hg, Path& p);
+
+void
+derive(const Path& p, const Node* cur, vector<string>& carry);
+
 namespace io {
 
 void
-read(Hypergraph& hg, vector<G::Rule*> rules, string fn);
+read(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn); // FIXME
 
 void
-write(Hypergraph& hg, vector<G::Rule*> rules, string fn);
+write(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn); // TODO
 
 void
-manual(Hypergraph& hg);
+manual(Hypergraph& hg, vector<G::Rule*>& rules);
 
 } // namespace
 

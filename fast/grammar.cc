@@ -1,50 +1,94 @@
 #include "grammar.hh"
 
 
-string
-esc_str(const string& s) { // FIXME
-  ostringstream os;
-  for (auto it = s.cbegin(); it != s.cend(); it++) {
-    switch (*it) {
-      case '"':  os << "\\\""; break;
-      case '\\': os << "\\\\"; break;
-      case '\b': os << "\\b";  break;
-      case '\f': os << "\\f";  break;
-      case '\n': os << "\\n";  break;
-      case '\r': os << "\\r";  break;
-      case '\t': os << "\\t";  break;
-      default:   os << *it;    break;
-    }
-  }
-
-  return os.str();
-}
-
 namespace G {
 
+/*
+ * G::NT
+ *
+ */
 NT::NT(string& s)
 {
-  s.erase(0, 1);
-  s.pop_back();
+  s.erase(0, 1); s.pop_back(); // remove '[' and ']'
   stringstream ss(s);
   string buf;
-  size_t c = 0;
-  index = 0;
+  size_t j = 0;
+  index = 0; // default
   while (ss.good() && getline(ss, buf, ',')) {
-    if (c == 0) {
+    if (j == 0) {
       symbol = buf;
     } else {
       index = stoi(buf);
     }
-    c++;
+    j++;
   }
 }
 
-T::T(string& s)
+string
+NT::repr() const
+{
+  ostringstream os;
+  os << "NT<" << symbol << "," << index << ">";
+
+  return os.str();
+}
+
+string
+NT::escaped() const
+{
+  ostringstream os;
+  os << "[" << symbol;
+  if (index > 0)
+    os << "," << index;
+  os << "]";
+
+  return os.str();
+}
+
+ostream&
+operator<<(ostream& os, const NT& nt)
+{
+  return os << nt.repr();
+}
+
+/*
+ * G::T
+ *
+ */
+T::T(const string& s)
 {
   word = s;
 }
 
+string
+T::repr() const
+{
+  ostringstream os;
+  os << "T<" << word << ">";
+
+  return os.str();
+}
+
+string
+T::escaped() const
+{
+  return util::json_escape(word);
+}
+
+ostream&
+operator<<(ostream& os, const T& t)
+{
+  return os << t.repr();
+}
+
+
+/*
+ * G::Item
+ *
+ * Better solve this by inheritance
+ *  -> rhs, target as vector<base class> ?
+ *
+ */
 Item::Item(string& s)
 {
   if (s.front() == '[' && s.back() == ']') {
@@ -53,45 +97,6 @@ Item::Item(string& s)
   } else {
     type = TERMINAL;
     t = new T(s);
-  }
-}
-
-Rule::Rule(string& s)
-{
-  stringstream ss(s);
-  size_t c = 0;
-  string buf;
-  while (ss >> buf) {
-    if (buf == "|||") { c++; continue; }
-    if (c == 0) {        // LHS
-      lhs = new NT(buf);
-    } else if (c == 1) { // RHS
-      rhs.push_back(new Item(buf));
-      if (rhs.back()->type == NON_TERMINAL) arity++;
-    } else if (c == 2) { // TARGET
-      target.push_back(new Item(buf));
-    } else if (c == 3) { // F TODO
-    } else if (c == 4) { // A TODO
-    } else {             // ERROR FIXME
-    }
-    if (c == 4) break;
-  }
-  arity = 0;
-}
-
-Grammar::Grammar(string fn)
-{
-  ifstream ifs(fn);
-  string line;
-  while (getline(ifs, line)) {
-    G::Rule* r = new G::Rule(line);
-    rules.push_back(r);
-    if (r->arity == 0)
-      flat.push_back(r);
-    else if (r->rhs.front()->type == NON_TERMINAL)
-      start_nt.push_back(r);
-    else
-      start_t.push_back(r);
   }
 }
 
@@ -125,46 +130,36 @@ operator<<(ostream& os, const Item& i)
   return os << i.repr();
 }
 
-string
-NT::repr() const
+/*
+ * G::Rule
+ *
+ */
+Rule::Rule(const string& s)
 {
-  ostringstream os;
-  os << "NT<" << symbol << "," << index << ">";
-
-  return os.str();
-}
-
-string
-NT::escaped() const
-{
-  ostringstream os;
-  os << "[" << symbol;
-  if (index > 0)
-    os << "," << index;
-  os << "]";
-
-  return os.str();
-}
-
-ostream&
-operator<<(ostream& os, const NT& nt)
-{
-  return os << nt.repr();
-}
-
-string
-T::repr() const
-{
-  ostringstream os;
-  os << "T<" << word << ">";
-
-  return os.str();
-}
-
-ostream&
-operator<<(ostream& os, const T& t)
-{
-  return os << t.repr();
+  stringstream ss(s);
+  size_t j = 0;
+  string buf;
+  arity = 0;
+  size_t index = 1;
+  while (ss >> buf) {
+    if (buf == "|||") { j++; continue; }
+    if (j == 0) {        // LHS
+      lhs = new NT(buf);
+    } else if (j == 1) { // RHS
+      rhs.push_back(new Item(buf));
+      if (rhs.back()->type == NON_TERMINAL) arity++;
+    } else if (j == 2) { // TARGET
+      target.push_back(new Item(buf));
+      if (target.back()->type == NON_TERMINAL) {
+        order.insert(make_pair(index, target.back()->nt->index));
+        index++;
+      }
+    } else if (j == 3) { // F TODO
+    } else if (j == 4) { // A TODO
+    } else {             // ERROR
+    }
+    if (j == 4) break;
+  }
 }
 
 string
@@ -183,18 +178,12 @@ Rule::repr() const
     if (next(it) != target.end()) os << " ";
   }
   os << "}" \
-   ", f:" << "TODO" << \
+   ", f:" << f->repr() << \
    ", arity=" << arity << \
    ", map:" << "TODO" << \
    ">";
 
   return os.str();
-}
-
-ostream&
-operator<<(ostream& os, const Rule& r)
-{
-  return os << r.repr();
 }
 
 string
@@ -212,7 +201,7 @@ Rule::escaped() const
     if (next(it) != target.end()) os << " ";
   }
   os << " ||| ";
-  os << "TODO";
+  os << f->escaped();
   os << " ||| ";
   os << "TODO";
 
@@ -220,10 +209,36 @@ Rule::escaped() const
 }
 
 ostream&
+operator<<(ostream& os, const Rule& r)
+{
+  return os << r.repr();
+}
+
+/*
+ * G::Grammmar
+ *
+ */
+Grammar::Grammar(const string& fn)
+{
+  ifstream ifs(fn);
+  string line;
+  while (getline(ifs, line)) {
+    G::Rule* r = new G::Rule(line);
+    rules.push_back(r);
+    if (r->arity == 0)
+      flat.push_back(r);
+    else if (r->rhs.front()->type == NON_TERMINAL)
+      start_nt.push_back(r);
+    else
+      start_t.push_back(r);
+  }
+}
+
+ostream&
 operator<<(ostream& os, const Grammar& g)
 {
-  for (auto it = g.rules.begin(); it != g.rules.end(); it++)
-    os << (**it).repr() << endl;
+  for (const auto it: g.rules)
+    os << it->repr() << endl;
 
   return os;
 }

@@ -1,38 +1,42 @@
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <sstream>
 #include <fstream>
-#include <vector>
+#include <iostream>
+#include <sstream>
+#include <string>
 #include <map>
+#include <msgpack.hpp>
+#include <vector>
 
-#include "dummyvector.h"
+#include "sparse_vector.hh"
+#include "util.hh"
 
 using namespace std;
 
 
-string esc_str(const string& s); // FIXME
-
 namespace G {
 
 struct NT {
-        string symbol;
-  unsigned int index;
+  string symbol;
+  size_t index;
 
   NT() {};
   NT(string& s);
+
   string repr() const;
   string escaped() const;
+
   friend ostream& operator<<(ostream& os, const NT& t);
 };
 
 struct T {
-  string word;
+  string word; // use word ids instead?
 
-  T(string& s);
+  T(const string& s);
+
   string repr() const;
-  string escaped() const { return esc_str(word); }
+  string escaped() const;
+
   friend ostream& operator<<(ostream& os, const NT& nt);
 };
 
@@ -47,26 +51,33 @@ struct Item {
         T* t;
 
   Item(string& s);
+
   string repr() const;
   string escaped() const;
+
   friend ostream& operator<<(ostream& os, const Item& i);
 };
 
 struct Rule {
-                      NT* lhs;
-            vector<Item*> rhs;
-            vector<Item*> target;
-            //map<int,int> map;
-                   size_t arity;
-              DummyVector f;
+                               NT* lhs;
+                     vector<Item*> rhs;
+                     vector<Item*> target;
+                            size_t arity;
+Sv::SparseVector<string, score_t>* f;
+               map<size_t, size_t> order;
+                            string as_str_; // FIXME
 
   Rule() {};
-  Rule(string& s);
+  Rule(const string& s);
+
   string repr() const;
   string escaped() const;
+
   friend ostream& operator<<(ostream& os, const Rule& r);
 
-  MSGPACK_DEFINE();
+  void prep_for_serialization_() { as_str_ = escaped(); }; // FIXME
+
+  MSGPACK_DEFINE(as_str_); // TODO
 };
 
 struct Grammar {
@@ -75,9 +86,12 @@ struct Grammar {
   vector<Rule*> start_nt;
   vector<Rule*> start_t;
 
-  Grammar(string fn);
-  void add_glue();
-  void add_pass_through();
+  Grammar() {};
+  Grammar(const string& fn);
+
+  void add_glue(); // TODO
+  void add_pass_through(const string& input); // TODO
+
   friend ostream& operator<<(ostream& os, const Grammar& g);
 };
 

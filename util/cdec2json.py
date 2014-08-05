@@ -7,6 +7,8 @@ import gzip
 
 
 #FIXME new format
+# strings?
+# map?
 def hg2json(hg, weights):
   """
   output a JSON representation of a cdec hypegraph
@@ -20,6 +22,16 @@ def hg2json(hg, weights):
       a.append( '"%s":%s'%(i[0], i[1]) )
   res += ", ".join(a)+"\n"
   res += "},\n"
+  res += '"rules":[\n'
+  rules = []
+  for i in hg.edges:
+    s = json.dumps(str(i.trule))
+    try:
+      rules.index(s)
+    except:
+      rules.append(s)
+  res += ",\n".join(rules)
+  res += "\n],\n"
   res += '"nodes":'+"\n"
   res += "[\n"
   a = []
@@ -34,21 +46,21 @@ def hg2json(hg, weights):
   for i in hg.edges:
     s = "{"
     s += '"head":%d'%(i.head_node.id+1)
-    s += ', "rule":%s'%(json.dumps(str(i.trule)))
+    s += ', "rule":%s'%(rules.index(json.dumps(str(i.trule))))
     # f
-    xs = ' "f":{'
-    b = []
-    for j in i.feature_values:
-      b.append( '"%s":%s'%(j[0], j[1]) )
-    xs += ", ".join(b)
-    xs += "},"
+    #xs = ' "f":{'
+    #b = []
+    #for j in i.feature_values:
+    #  b.append( '"%s":%s'%(j[0], j[1]) )
+    #xs += ", ".join(b)
+    #xs += "},"
     # tails
     if len(list(i.tail_nodes)) > 0:
       s += ', "tails":[ %s ],'%(",".join([str(n.id+1) for n in i.tail_nodes]))
     else:
       s += ', "tails":[ 0 ],'
-    s += xs
-    s += ' "weight":%s }'%(i.prob)
+    #s += xs
+    s += ' "score":%s }'%(i.prob)
     a.append(s)
   res += ",\n".join(a)+"\n"
   res += "]\n"

@@ -64,7 +64,7 @@ class HG::Hypergraph
     json_s += "}\n"
 
     return json_s
- 
+
   end
 end
 

@@ -1,6 +1,7 @@
 #pragma once
 
 
+// TODO: others
 namespace Semiring {
 
 template<typename T>
