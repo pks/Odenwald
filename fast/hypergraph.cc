@@ -73,7 +73,7 @@ viterbi_path(Hypergraph& hg, Path& p)
     find_if(hg.nodes.begin(), hg.nodes.end(), \
     [](Node* n) { return n->incoming.size() == 0; });
 
-  Hg::topological_sort(hg.nodes, root);
+  Hg::topological_sort(hg.nodes, root); // FIXME do I need to do this when reading from file?
   Semiring::Viterbi<score_t> semiring;
   Hg::init(hg.nodes, root, semiring);
 
@@ -107,7 +107,8 @@ derive(const Path& p, const Node* cur, vector<string>& carry)
         it->head->right == cur->right) {
       next = it;
     }
-  }
+  } // FIXME this is probably not so good
+
   unsigned j = 0;
   for (auto it: next->rule->target) {
     if (it->type == G::NON_TERMINAL) {
@@ -125,7 +126,7 @@ void
 read(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn) // FIXME
 {
   ifstream ifs(fn);
-  size_t i = 0, nr, nn, ne;
+  size_t i = 0, r, n, e;
   msgpack::unpacker pac;
   while(true) {
     pac.reserve_buffer(32*1024);
@@ -135,17 +136,23 @@ read(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn) // FIXME
     while(pac.next(&result)) {
       msgpack::object o = result.get();
       if (i ==  0) {
-        o.convert(&nn);
-        nn += 1;
+        o.convert(&r);
       } else  if (i == 1) {
-        o.convert(&ne);
-        ne += 1;
-      } else if (i > 1 && i <= nn) {
+        o.convert(&n);
+      } else  if (i == 2) {
+        o.convert(&e);
+      } else if (i > 2 && i <= r+2) {
+        string s;
+        o.convert(&s);
+        G::Rule* rule = new G::Rule;
+        G::Rule::from_s(rule, s);
+        rules.push_back(rule);
+      } else if (i > r+2 && i <= r+n+2) {
         Node* n = new Node;
         o.convert(n);
         hg.nodes.push_back(n);
         hg.nodes_by_id[n->id] = n;
-      } else if (i > nn && i <= nn+ne+1) {
+      } else if (i > n+2 && i <= r+n+e+2) {
         Edge* e = new Edge;
         e->arity = 0;
         o.convert(e);
@@ -158,6 +165,9 @@ read(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn) // FIXME
           e->tails.push_back(hg.nodes_by_id[*it]);
           e->arity++;
         }
+        e->rule = rules[e->rule_id_];
+      } else {
+        // ERROR
       }
       i++;
     }

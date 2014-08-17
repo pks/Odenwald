@@ -9,7 +9,6 @@ int
 main(int argc, char** argv)
 {
   ifstream ifs(argv[1]);
-  size_t i = 0, nn, ne;
   msgpack::unpacker pac;
   while(true) {
     pac.reserve_buffer(32*1024);

@@ -1,10 +1,9 @@
-COMPILER=clang
+COMPILER=g++
 CFLAGS=-std=c++11 -O3
 
 
 all: grammar.o hypergraph.o main.cc
 	$(COMPILER) $(CFLAGS) -std=c++11 -lstdc++ -lm -lmsgpack grammar.o hypergraph.o main.cc -o fast_weaver
-
 
 hypergraph.o: hypergraph.cc hypergraph.hh grammar.o semiring.hh sparse_vector.hh weaver.hh
 	$(COMPILER) $(CFLAGS) -g -c hypergraph.cc

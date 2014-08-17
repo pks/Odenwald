@@ -10,7 +10,18 @@ namespace G {
 NT::NT(string& s)
 {
   s.erase(0, 1); s.pop_back(); // remove '[' and ']'
-  stringstream ss(s);
+  istringstream ss(s);
+  if (ss >> index) { // [i]
+    symbol = "";
+    index = stoi(s);
+
+    return;
+  } else { // [X]
+    symbol = s;
+    index = 0;
+
+    return;
+  }
   string buf;
   size_t j = 0;
   index = 0; // default
@@ -136,27 +147,42 @@ operator<<(ostream& os, const Item& i)
  */
 Rule::Rule(const string& s)
 {
+  from_s(this, s);
+}
+
+void
+Rule::from_s(Rule* r, const string& s)
+{
   stringstream ss(s);
   size_t j = 0;
   string buf;
-  arity = 0;
+  r->arity = 0;
   size_t index = 1;
+  vector<G::NT*> rhs_nt;
+  r->f = new Sv::SparseVector<string, score_t>();
   while (ss >> buf) {
     if (buf == "|||") { j++; continue; }
     if (j == 0) {        // LHS
-      lhs = new NT(buf);
+      r->lhs = new NT(buf);
     } else if (j == 1) { // RHS
-      rhs.push_back(new Item(buf));
-      if (rhs.back()->type == NON_TERMINAL) arity++;
+      r->rhs.push_back(new Item(buf));
+      if (r->rhs.back()->type == NON_TERMINAL) {
+        rhs_nt.push_back(r->rhs.back()->nt);
+        r->arity++;
+      }
     } else if (j == 2) { // TARGET
-      target.push_back(new Item(buf));
-      if (target.back()->type == NON_TERMINAL) {
-        order.insert(make_pair(index, target.back()->nt->index));
+      r->target.push_back(new Item(buf));
+      if (r->target.back()->type == NON_TERMINAL) {
+        r->order.insert(make_pair(index, r->target.back()->nt->index));
+        if (r->target.back()->nt->symbol == "")
+          r->target.back()->nt->symbol = rhs_nt[r->target.back()->nt->index-1]->symbol;
         index++;
       }
     } else if (j == 3) { // F TODO
+      Sv::SparseVector<string, score_t>::from_s(r->f, buf); // FIXME this is slow!!!
     } else if (j == 4) { // A TODO
-    } else {             // ERROR
+    } else { 
+      // ERROR
     }
     if (j == 4) break;
   }
@@ -203,7 +229,7 @@ Rule::escaped() const
   os << " ||| ";
   os << f->escaped();
   os << " ||| ";
-  os << "TODO";
+  os << "TODO(alignment)";
 
   return os.str();
 }

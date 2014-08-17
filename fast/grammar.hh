@@ -69,6 +69,7 @@ Sv::SparseVector<string, score_t>* f;
 
   Rule() {};
   Rule(const string& s);
+  static void from_s(Rule* r, const string& s);
 
   string repr() const;
   string escaped() const;

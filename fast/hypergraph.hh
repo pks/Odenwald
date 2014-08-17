@@ -92,7 +92,7 @@ void
 read(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn); // FIXME
 
 void
-write(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn); // TODO
+write(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn); // FIXME
 
 void
 manual(Hypergraph& hg, vector<G::Rule*>& rules);

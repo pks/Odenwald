@@ -22,17 +22,7 @@ struct SparseVector {
   SparseVector() {};
   SparseVector(string& s)
   {
-    stringstream ss(s);
-    while (!ss.eof()) {
-      string t;
-      ss >> t;
-      size_t eq = t.find_first_of("=");
-      t.replace(eq, 1, " ");
-      stringstream tt(t);
-      K k; V v;
-      tt >> k >> v;
-      m_.emplace(k.substr(k.find_first_of("\"")+1, k.find_last_of("\"")-1), v);
-    }
+    from_s(this, s);
   };
 
   void
@@ -138,6 +128,25 @@ struct SparseVector {
     return *this;
   };
 
+  static void
+  from_s(SparseVector* w, const string& s)
+  {
+    stringstream ss(s);
+    while (!ss.eof()) {
+      string t;
+      ss >> t;
+      size_t eq = t.find_first_of("=");
+      if (eq == string::npos) {
+        return;
+      }
+      t.replace(eq, 1, " ");
+      stringstream tt(t);
+      K k; V v;
+      tt >> k >> v;
+      w->m_.emplace(k.substr(k.find_first_of("\"")+1, k.find_last_of("\"")-1), v);
+    }
+  }
+
   string
   repr() const
   {
@@ -154,10 +163,13 @@ struct SparseVector {
   };
 
   string
-  escaped() const {
+  escaped(bool quote_keys=false) const {
     ostringstream os;
     for (auto it = m_.cbegin(); it != m_.cend(); it++) {
-      os << '"' <<  util::json_escape(it->first) << '"' << "=" << it->second;
+      if (quote_keys) os << '"';
+      os << util::json_escape(it->first);
+      if (quote_keys) os << '"';
+      os << "=" << it->second;
       if (next(it) != m_.cend()) os << " ";
     }
 

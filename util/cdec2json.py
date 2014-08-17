@@ -15,13 +15,6 @@ def hg2json(hg, weights):
   """
   res = ''
   res += "{\n"
-  res += '"weights":{'+"\n"
-  a = []
-  for i in weights:
-    if i[1] != 0:
-      a.append( '"%s":%s'%(i[0], i[1]) )
-  res += ", ".join(a)+"\n"
-  res += "},\n"
   res += '"rules":[\n'
   rules = []
   for i in hg.edges:
@@ -35,9 +28,9 @@ def hg2json(hg, weights):
   res += '"nodes":'+"\n"
   res += "[\n"
   a = []
-  a.append( '{ "id":0, "cat":"root", "span":[-1,-1] }' )
+  a.append( '{ "id":0, "symbol":"root", "span":[-1,-1] }' )
   for i in hg.nodes:
-    a.append('{ "id":%d, "cat":"%s", "span":[%d,%d] }'%(i.id+1, i.cat, i.span[0], i.span[1]))
+    a.append('{ "id":%d, "symbol":"%s", "span":[%d,%d] }'%(i.id+1, i.cat, i.span[0], i.span[1]))
   res += ",\n".join(a)+"\n"
   res += "],\n"
   res += '"edges":'+"\n"
