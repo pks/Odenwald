@@ -2,7 +2,6 @@ TODO
   * sparse vector (unordered_map) -> where to store?
   * parser
   * Rule -> ChartItem -> Node ?
-  * viterbi path/string
   * k-best
   * other semirings
   * include language model
@@ -34,4 +33,6 @@ http://www.osl.iu.edu/research/mtl/download.php3
 http://scicomp.stackexchange.com/questions/351/recommendations-for-a-usable-fast-c-matrix-library
 https://software.intel.com/en-us/tbb_4.2_doc
 http://goog-perftools.sourceforge.net/doc/tcmalloc.html
+http://www.sgi.com/tech/stl/Rope.html
+http://www.cs.unc.edu/Research/compgeom/gzstream/
 

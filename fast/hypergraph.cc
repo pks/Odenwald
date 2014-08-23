@@ -69,11 +69,13 @@ viterbi(Hypergraph& hg)
 void
 viterbi_path(Hypergraph& hg, Path& p)
 {
-  list<Node*>::iterator root = \
+  //list<Node*>::iterator root = \
     find_if(hg.nodes.begin(), hg.nodes.end(), \
     [](Node* n) { return n->incoming.size() == 0; });
+  list<Node*>::iterator root = hg.nodes.begin();
 
-  Hg::topological_sort(hg.nodes, root); // FIXME do I need to do this when reading from file?
+  //Hg::topological_sort(hg.nodes, root);
+  //  ^^^ FIXME do I need to do this when reading from file?
   Semiring::Viterbi<score_t> semiring;
   Hg::init(hg.nodes, root, semiring);
 
@@ -111,11 +113,11 @@ derive(const Path& p, const Node* cur, vector<string>& carry)
 
   unsigned j = 0;
   for (auto it: next->rule->target) {
-    if (it->type == G::NON_TERMINAL) {
+    if (it->type() == G::NON_TERMINAL) {
       derive(p, next->tails[next->rule->order[j]], carry);
       j++;
     } else {
-      carry.push_back(it->t->word);
+      carry.push_back(it->symbol());
     }
   }
 }
@@ -123,7 +125,7 @@ derive(const Path& p, const Node* cur, vector<string>& carry)
 namespace io {
 
 void
-read(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn) // FIXME
+read(Hypergraph& hg, vector<G::Rule*>& rules, G::Vocabulary& vocab, const string& fn)
 {
   ifstream ifs(fn);
   size_t i = 0, r, n, e;
@@ -145,7 +147,7 @@ read(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn) // FIXME
         string s;
         o.convert(&s);
         G::Rule* rule = new G::Rule;
-        G::Rule::from_s(rule, s);
+        G::Rule::from_s(rule, s, vocab);
         rules.push_back(rule);
       } else if (i > r+2 && i <= r+n+2) {
         Node* n = new Node;
@@ -193,7 +195,7 @@ write(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn) // FIXME
 }
 
 void
-manual(Hypergraph& hg, vector<G::Rule*>& rules)
+manual(Hypergraph& hg, vector<G::Rule*>& rules, G::Vocabulary& vocab)
 {
   // nodes
   Node* a = new Node; a->id = 0; a->symbol = "root"; a->left = -1;    a->right = -1; a->mark = 0;
@@ -228,7 +230,7 @@ manual(Hypergraph& hg, vector<G::Rule*>& rules)
   rule_strs.push_back("[S] ||| [NP,1] [VP,2] ||| [NP,1] [VP,2] ||| ||| ");
 
   for (auto it: rule_strs) {
-    rules.push_back(new G::Rule(it));
+    rules.push_back(new G::Rule(it, vocab));
     rules.back()->f = new Sv::SparseVector<string, score_t>();
   }
 
@@ -349,8 +351,9 @@ operator<<(ostream& os, const Edge& e)
     "Edge<head=" << e.head->id << \
     ", tails=[" << _.str() << "]" \
     ", score=" << e.score << \
-    ", rule:'" << e.rule->escaped() << "'" <<  \
-    ", f=" << "TODO" << \
+    ", rule:'";
+  e.rule->escaped(os);
+  os << "', f=" << "TODO" << \
     ", arity=" << e.arity << \
     ", mark=" << e.mark << ">";
   return os;

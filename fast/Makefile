@@ -1,24 +1,15 @@
 COMPILER=g++
 CFLAGS=-std=c++11 -O3
+TCMALLOC=/home/pks/src/weaver/fast/gperftools-2.1/lib/libtcmalloc_minimal.a -pthread
 
 
-all: grammar.o hypergraph.o main.cc
-	$(COMPILER) $(CFLAGS) -std=c++11 -lstdc++ -lm -lmsgpack grammar.o hypergraph.o main.cc -o fast_weaver
+all: hypergraph.o main.cc
+	$(COMPILER) $(CFLAGS) -lstdc++ -lm -lmsgpack $(TCMALLOC) hypergraph.o main.cc -o fast_weaver
 
-hypergraph.o: hypergraph.cc hypergraph.hh grammar.o semiring.hh sparse_vector.hh weaver.hh
-	$(COMPILER) $(CFLAGS) -g -c hypergraph.cc
-
-grammar.o: grammar.cc grammar.hh sparse_vector.hh util.hh
-	$(COMPILER) $(CFLAGS) -g -c grammar.cc
-
-test: test_grammar test_sparse_vector
-
-test_grammar: test_grammar.cc grammar.o
-	$(COMPILER) $(CFLAGS) -lstdc++ -lm grammar.o test_grammar.cc -o test_grammar
-
-test_sparse_vector: test_sparse_vector.cc sparse_vector.hh
-	$(COMPILER) $(CFLAGS) -lstdc++ -lm test_sparse_vector.cc -o test_sparse_vector
+hypergraph.o: hypergraph.cc hypergraph.hh semiring.hh sparse_vector.hh weaver.hh
+	$(COMPILER) $(CFLAGS) -g -c $(TCMALLOC) hypergraph.cc
 
 clean:
-	rm -f fast_weaver hypergraph.o grammar.o test_grammar test_sparse_vector
+	rm -f fast_weaver
+	rm -f hypergraph.o parse.o
 

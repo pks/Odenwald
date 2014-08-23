@@ -6,8 +6,9 @@ int
 main(int argc, char** argv)
 {
   Hg::Hypergraph hg;
+  G::Vocabulary y;
   G::Grammar g;
-  Hg::io::read(hg, g.rules, argv[1]);
+  Hg::io::read(hg, g.rules, y, argv[1]);
   //Hg::io::manual(hg, g.rules);
   clock_t begin = clock();
   Hg::Path p;

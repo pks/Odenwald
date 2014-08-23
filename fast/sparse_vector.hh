@@ -20,6 +20,7 @@ struct SparseVector {
                    V zero = 0.f;
 
   SparseVector() {};
+
   SparseVector(string& s)
   {
     from_s(this, s);
@@ -147,10 +148,9 @@ struct SparseVector {
     }
   }
 
-  string
-  repr() const
+  ostream&
+  repr(ostream& os) const
   {
-    ostringstream os;
     os << "SparseVector<{";
     for (auto it = m_.cbegin(); it != m_.cend(); it++) {
       os << "'" << it->first << "'=" << it->second;
@@ -159,12 +159,11 @@ struct SparseVector {
     }
     os << "}>";
 
-    return os.str();
+    return os;
   };
 
-  string
-  escaped(bool quote_keys=false) const {
-    ostringstream os;
+  ostream&
+  escaped(ostream& os, bool quote_keys=false) const {
     for (auto it = m_.cbegin(); it != m_.cend(); it++) {
       if (quote_keys) os << '"';
       os << util::json_escape(it->first);
@@ -173,10 +172,14 @@ struct SparseVector {
       if (next(it) != m_.cend()) os << " ";
     }
 
-    return os.str();
+    return os;
   };
 
-  friend ostream& operator<<(ostream& os, const SparseVector& v) { return os << v.repr(); }
+  friend ostream&
+  operator<<(ostream& os, const SparseVector& v)
+  {
+    return v.repr(os);
+  }
 };
 
 } // namespace

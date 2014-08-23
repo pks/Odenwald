@@ -34,7 +34,7 @@ struct Edge {
       unsigned int mark = 0;
 
   inline bool is_marked() { return mark >= arity; }
-  friend ostream& operator<<(ostream& os, const Edge& s);
+  friend ostream& operator<<(ostream& os, const Edge& e);
 
           size_t head_id_;
   vector<size_t> tails_ids_; // node ids
@@ -89,7 +89,7 @@ derive(const Path& p, const Node* cur, vector<string>& carry);
 namespace io {
 
 void
-read(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn); // FIXME
+read(Hypergraph& hg, vector<G::Rule*>& rules, G::Vocabulary& vocab, const string& fn); // FIXME
 
 void
 write(Hypergraph& hg, vector<G::Rule*>& rules, const string& fn); // FIXME
