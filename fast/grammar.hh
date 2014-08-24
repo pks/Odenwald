@@ -49,32 +49,29 @@ struct NT : public Item {
     index_ = 0; // default
     string t(s);
     t.erase(0, 1); t.pop_back(); // remove '[' and ']'
-    istringstream ss(s);
+    istringstream ss(t);
     if (ss >> index_) { // [i]
       symbol_ = "";
       index_ = stoi(s);
-
       return;
-    } else { // [X]
-      symbol_ = s;
-
-      return;
-    }
-    string buf;
-    size_t j = 0;
-    while (ss.good() && getline(ss, buf, ',')) {
-      if (j == 0) {
-        symbol_ = buf;
-      } else {
-        index_ = stoi(buf);
+    } else {
+      ss.clear();
+      string buf;
+      size_t j = 0;
+      while (ss.good() && getline(ss, buf, ',')) {
+        if (j == 0) {
+          symbol_ = buf;
+        } else {
+          index_ = stoi(buf);
+        }
+        j++;
       }
-      j++;
     }
   }
 
   virtual size_t index() const { return index_; }
   virtual symbol_t symbol() const { return symbol_; }
-  virtual item_type type() { return NON_TERMINAL; }
+  virtual item_type type() const { return NON_TERMINAL; }
 
   virtual ostream&
   repr(ostream& os) const
@@ -103,7 +100,7 @@ struct T : public Item {
   }
 
   virtual symbol_t symbol() const { return symbol_; }
-  virtual item_type type() { return TERMINAL; }
+  virtual item_type type() const { return TERMINAL; }
 
   virtual ostream&
   repr(ostream& os) const
@@ -169,7 +166,7 @@ Sv::SparseVector<string, score_t>* f;
   {
     istringstream ss(s);
     string buf;
-    size_t j = 0, i = 0;
+    size_t j = 0, i = 1;
     r->arity = 0;
     vector<NT*> rhs_non_terminals;
     r->f = new Sv::SparseVector<string, score_t>();
@@ -187,7 +184,7 @@ Sv::SparseVector<string, score_t>* f;
       } else if (j == 2) { // target
         Item* item = vocab.get(buf);
         if (item->type() == NON_TERMINAL) {
-          r->order[i] = item->index();
+          r->order.insert(make_pair(i, item->index()));
           i++;
           if (item->symbol() == "") { // only [1], [2] ... on target
             reinterpret_cast<NT*>(item)->symbol_ = \
@@ -223,9 +220,13 @@ Sv::SparseVector<string, score_t>* f;
     }
     os << "}, f:";
     f->repr(os);
-    os <<  ", arity=" << arity << \
-     ", map:" << "TODO" << \
-     ">";
+    os << ", arity=" << arity << \
+     ", order:{";
+    for (auto it = order.begin(); it != order.end(); it++) {
+      os << it->first << "->" << it->second;
+      if (next(it) != order.end()) os << ", ";
+    }
+    os << "}>";
 
     return os;
   }
@@ -246,14 +247,14 @@ Sv::SparseVector<string, score_t>* f;
     }
     os << " ||| ";
     f->escaped(os);
-    os << " ||| ";
-    os << "TODO";
+    os << " ||| " << \
+     "TODO";
 
     return os;
   };
 
   friend ostream&
-  operator<<(ostream& os, const Rule& r)
+  operator<<(ostream& os, Rule const& r)
   {
     return r.repr(os);
   };

@@ -6,6 +6,8 @@
 #include <unordered_map>
 
 #include "grammar.hh"
+#include "util.hh"
+#include "weaver.hh"
 
 
 using namespace std;
@@ -74,9 +76,10 @@ struct Chart
   string h(ChartItem* item, Span s)
   {
     ostringstream ss;
-    ss << item->rule->lhs->symbol;
+    item->rule->lhs->symbol();
     ss << s.first;
     ss << s.second;
+
     return ss.str();
   }
 
@@ -92,9 +95,11 @@ struct Chart
 };
 
 
-void init(vector<G::T> const& in, size_t n, Chart& active,  Chart& passive, G::Grammar const& g)
+void
+init(vector<symbol_t> const& in, size_t n, Chart& active,  Chart& passive, G::Grammar const& g)
 {
-  for (auto rule: g.flat) {
+  for (auto rule: g.rules) {
+    cout << *rule << endl;
   }
 }
 

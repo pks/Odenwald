@@ -2,13 +2,16 @@
 
 #include <string>
 
+#include "weaver.hh"
+
 using namespace std;
 
 
 namespace util {
 
 inline string
-json_escape(const string& s) { // FIXME: only inline?
+json_escape(const string& s)
+{
   ostringstream os;
   for (auto it = s.cbegin(); it != s.cend(); it++) {
     switch (*it) {
@@ -24,6 +27,20 @@ json_escape(const string& s) { // FIXME: only inline?
   }
 
   return os.str();
+}
+
+inline vector<symbol_t>
+tokenize(string s)
+{
+  istringstream ss(s);
+  vector<symbol_t> r;
+  while (ss.good()) {
+    string buf;
+    ss >> buf;
+    r.push_back(buf);
+  }
+
+  return r;
 }
 
 } // namespace util
