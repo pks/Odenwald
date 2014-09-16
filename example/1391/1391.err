@@ -1,0 +1,7 @@
+input:
+ 'wins tone sagte , er sei stolz darauf den preis zu bekommen , der zu ehren des camelot and harry potter stars harris benannt wurde , der 2002 starb .'
+viterbi translation:
+ 'wins tone sagte , er sei stolz darauf den preis zu bekommen , der zu ehren des camelot and harry potter stars harris benannt wurde , der 2002 starb .'
+# nodes = 286
+# edges = 70849
+viterbi score = -2.46

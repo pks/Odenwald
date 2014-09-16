@@ -1,0 +1,7 @@
+input:
+ 'zu diesem zeitpunkt war warhol schon drei jahre tot .'
+viterbi translation:
+ 'zu diesem zeitpunkt war warhol schon three jahre tot .'
+# nodes = 66
+# edges = 10938
+viterbi score = -0.8

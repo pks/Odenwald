@@ -1,0 +1,7 @@
+input:
+ 'baracoa'
+viterbi translation:
+ 'baracoa'
+# nodes = 3
+# edges = 4
+viterbi score = -0.02

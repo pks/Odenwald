@@ -1,0 +1,7 @@
+input:
+ 'manches hielt harmonia davon fest .'
+viterbi translation:
+ 'manches hielt harmonia davon fest .'
+# nodes = 28
+# edges = 2248
+viterbi score = -0.48
