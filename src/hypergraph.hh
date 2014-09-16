@@ -16,10 +16,9 @@
 #include "grammar.hh"
 #include "semiring.hh"
 #include "sparse_vector.hh"
-#include "weaver.hh"
+#include "types.hh"
 
 using namespace std;
-
 
 namespace Hg {
 

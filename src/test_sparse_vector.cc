@@ -1,6 +1,5 @@
 #include "sparse_vector.hh"
 
-
 int
 main(void)
 {

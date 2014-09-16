@@ -1,7 +1,6 @@
 #include "hypergraph.hh"
 #include <ctime>
 
-
 int
 main(int argc, char** argv)
 {

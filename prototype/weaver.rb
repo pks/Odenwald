@@ -4,7 +4,6 @@ require 'trollop'
 require 'xmlsimple'
 require_relative 'parse'
 
-
 def read_grammar fn, add_glue, add_pass_through, input=nil
   STDERR.write "> reading grammar '#{fn}'\n"
   grammar = Grammar::Grammar.new fn
@@ -66,7 +65,6 @@ def main
     STDERR.write " #{s.map { |i| i.word }.join ' '} ||| #{Math.log score}\n"
   }
 end
-
 
 main
 

@@ -1,10 +1,8 @@
 require 'zipf'
 require_relative 'grammar'
-require_relative 'hg'
-
+require_relative 'hypergraph'
 
 module Parse
-
 
 def Parse::visit i, l, r, x=0
   i.upto(r-x) { |span|
@@ -204,7 +202,6 @@ def Parse::parse input, n, active_chart, passive_chart, grammar
 
   }
 end
-
 
 end #module
 

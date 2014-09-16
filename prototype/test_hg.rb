@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative '../hg'
+require_relative 'hypergraph'
 
 
 def main

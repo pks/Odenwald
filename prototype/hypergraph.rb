@@ -1,9 +1,7 @@
 require 'zipf'
 require_relative 'grammar'
 
-
 module HG
-
 
 class HG::Node
   attr_accessor :id, :symbol, :left, :right, :outgoing, :incoming, :score
@@ -216,7 +214,6 @@ def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=fal
   }
   return Hypergraph.new(nodes, edges), nodes_by_id
 end
-
 
 end #module
 

@@ -1,6 +1,5 @@
 module Grammar
 
-
 class T
   attr_accessor :word
 
@@ -133,7 +132,6 @@ class Grammar
     }
   end
 end
-
 
 end #module
 

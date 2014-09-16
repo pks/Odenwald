@@ -1,6 +1,5 @@
 #include "hypergraph.hh"
 
-
 namespace Hg {
 
 template<typename Semiring> void

@@ -1,3 +1,3 @@
 [submodule "util/json-cpp"]
-	path = util/json-cpp
+	path = external/json-cpp
 	url = https://github.com/ascheglov/json-cpp.git

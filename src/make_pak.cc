@@ -5,11 +5,10 @@
 #include <string>
 
 #include "json-cpp/single_include/json-cpp.hpp"
-#include "../fast/hypergraph.hh"
-#include "../fast/weaver.hh"
+#include "hypergraph.hh"
+#include "types.hh"
 
 using namespace std;
-
 
 struct DummyNode {
          size_t id;

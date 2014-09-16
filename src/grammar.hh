@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
 
 #include <msgpack.hpp>
 
@@ -13,7 +14,6 @@
 #include "util.hh"
 
 using namespace std;
-
 
 namespace G {
 
@@ -40,7 +40,7 @@ struct Item {
 
 struct NT : public Item {
   symbol_t symbol_;
-  size_t index_;
+    size_t index_;
 
   NT() {}
 
@@ -276,6 +276,7 @@ struct Grammar {
   vector<Rule*> flat;
   vector<Rule*> start_non_terminal;
   vector<Rule*> start_terminal;
+  set<symbol_t> nts;
 
   Grammar() {}
 
@@ -286,6 +287,7 @@ struct Grammar {
     while (getline(ifs, line)) {
       G::Rule* r = new G::Rule(line, vocab);
       rules.push_back(r);
+      nts.insert(r->lhs->symbol());
       if (r->arity == 0)
         flat.push_back(r);
       else if (r->rhs.front()->type() == NON_TERMINAL)
@@ -295,8 +297,24 @@ struct Grammar {
     }
   }
 
-  void add_glue();
-  //   ^^^ TODO
+  void
+  add_glue(Vocabulary& vocab)
+  {
+    for (auto nt: nts) {
+      ostringstream oss_1;
+      oss_1 << "[S] ||| [" << nt << ",1] ||| [" << nt << ",1] ||| ";
+      cout << oss_1.str() << endl;
+      Rule* r1 = new Rule(oss_1.str(), vocab);
+      rules.push_back(r1); start_non_terminal.push_back(r1);
+      ostringstream oss_2;
+      oss_2 << "[S] ||| [S,1] [" << nt << ",2] ||| [S,1] [" << nt << ",2] ||| ";
+      cout << oss_2.str() << endl;
+      Rule* r2 = new Rule(oss_2.str(), vocab);
+      cout << *r2 << endl;
+      rules.push_back(r2); start_non_terminal.push_back(r2);
+    }
+  }
+
   void add_pass_through(const string& input);
   //   ^^^ TODO
 

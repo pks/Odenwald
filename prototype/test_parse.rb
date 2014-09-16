@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative '../parse'
+require_relative 'parse'
 
 
 def main
