@@ -126,6 +126,7 @@ class Grammar
   end
 
   def add_pass_through a
+    return if !a
     a.each { |word|
       @rules << Rule.new(NT.new('X'), [T.new(word)], [T.new(word)])
       @flat << @rules.last

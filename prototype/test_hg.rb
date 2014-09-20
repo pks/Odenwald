@@ -2,7 +2,6 @@
 
 require_relative 'hypergraph'
 
-
 def main
   # viterbi
   semiring = ViterbiSemiring.new

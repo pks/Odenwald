@@ -2,7 +2,6 @@
 
 require_relative 'parse'
 
-
 def main
   STDERR.write "> reading input from TODO\n"
   input = 'ich sah ein kleines haus'.split

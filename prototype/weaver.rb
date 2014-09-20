@@ -20,11 +20,11 @@ end
 
 def main
   cfg = Trollop::options do
-    opt :input,            "", :type => :string, :default => '-',   :short => '-i'
-    opt :grammar,          "", :type => :string, :default => nil,   :short => '-g'
-    opt :weights,          "", :type => :string, :default => nil,   :short => '-w'
-    opt :add_glue,         "", :type => :bool,   :default => false, :short => '-l'
-    opt :add_pass_through, "", :type => :bool,   :default => false, :short => '-p'
+    opt :input,            "", :type => :string, :default => '-',    :short => '-i'
+    opt :grammar,          "", :type => :string, :required => true,  :short => '-g'
+    opt :weights,          "", :type => :string, :required => true,  :short => '-w'
+    opt :add_glue,         "", :type => :bool,   :default => false,  :short => '-l'
+    opt :add_pass_through, "", :type => :bool,   :default => false,  :short => '-p'
   end
 
   grammar = nil
@@ -32,16 +32,28 @@ def main
     grammar = read_grammar cfg[:grammar], cfg[:add_glue], cfg[:add_pass_through]
   end
 
+  sgm_input = false
+  if ['sgm', 'xml'].include? cfg[:input].split('.')[-1]
+    sgm_input = true
+  end
+
   STDERR.write "> reading input from '#{cfg[:input]}'\n"
   ReadFile.readlines_strip(cfg[:input]).each { |input|
 
-    x = XmlSimple.xml_in(input)
-    input = x['content'].split
+    if sgm_input
+      x = XmlSimple.xml_in(input)
+      input = x['content'].split
+    else
+      input = input.split
+    end
     n = input.size
 
-    if x['grammar']
+    if sgm_input && x['grammar']
       grammar = read_grammar x['grammar'], cfg[:add_glue], cfg[:add_pass_through], input
+    elsif cfg[:add_pass_through]
+      grammar.add_pass_through input
     end
+
 
     STDERR.write "> initializing charts\n"
     passive_chart = Parse::Chart.new n
@@ -62,7 +74,7 @@ def main
     semiring = ViterbiSemiring.new
     path, score = HG::viterbi_path hypergraph, hypergraph.nodes_by_id[-1], semiring
     s = HG::derive path, path.last.head, []
-    STDERR.write " #{s.map { |i| i.word }.join ' '} ||| #{Math.log score}\n"
+    STDOUT.write "#{s.map { |i| i.word }.join ' '} ||| #{Math.log score}\n"
   }
 end
 
