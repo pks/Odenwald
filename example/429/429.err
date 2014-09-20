@@ -1,7 +1,0 @@
-input:
- 'aber schon bald nach seinem eintritt kam der erste große erfolg .'
- viterbi translation:
-  'aber schon bald nach seinem eintritt kam der erste große erfolg .'
-# nodes = 88
-# edges = 20396
-  viterbi score = -1.02

@@ -1,7 +1,0 @@
-input:
- 'karten haie'
-viterbi translation:
- 'karten haie'
-# nodes = 6
-# edges = 106
-viterbi score = -0.19

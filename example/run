@@ -1,0 +1,73 @@
+#!/bin/zsh -x
+
+CDEC_BIN=~/src/cdec-dtrain/decoder/cdec
+CDEC_MINIMAL_BIN=~/src/cdec-dtrain/decoder/minimal_decoder
+WEAVER_PROTOTYPE_BIN=../prototype/weaver.rb
+FAST_WEAVER_BIN=../fast_weaver
+
+for example in \
+  3    \
+  429  \
+  748  \
+  1020 \
+  1391 \
+  1495 \
+  1570 \
+  1889 \
+  2002 \
+  glue; do
+
+mkdir -p $example/output
+
+#$CDEC_BIN -c cdec/default.ini -w weights/weights -n \
+  #-g $example/grammar < $example/in \
+    #> $example/output/cdec.nothing.out \
+    #2>$example/output/cdec.nothing.err
+#$CDEC_BIN -c cdec/default.ini -w weights/weights \
+  #-g $example/grammar < $example/in \
+    #> $example/output/cdec.glue.out \
+    #2>$example/output/cdec.glue.err
+#$CDEC_BIN -c cdec/passthrough.ini -w weights/weights -n \
+  #-g $example/grammar < $example/in \
+    #> $example/output/cdec.passthrough.out \
+    #2>$example/output/cdec.passthrough.err
+#$CDEC_BIN -c cdec/default.ini -w weights/weights \
+  #-g $example/grammar < $example/in \
+    #> $example/output/cdec.default.out \
+    #2>$example/output/cdec.default.err
+#$CDEC_BIN -c cdec/default.ini -w weights/weights.0 \
+  #-g $example/grammar < $example/in \
+    #> $example/output/cdec.default-0.out \
+    #2>$example/output/cdec.default-0.err
+
+$CDEC_MINIMAL_BIN $example/cdec.json.gz weights/weights \
+  > $example/output/cdec-minimal.out \
+  2>$example/output/cdec-minimal.err
+$CDEC_MINIMAL_BIN $example/cdec.json.gz weights/weights.0 \
+  > $example/output/cdec-minimal.0.out \
+  2>$example/output/cdec-minimal.0.err
+
+$FAST_WEAVER_BIN $example/weaver.pak \
+  > $example/output/fast_weaver.out \
+  2>$example/output/fast_weaver.err
+
+#$WEAVER_PROTOTYPE_BIN -w weights/weights -g $example/grammar -i $example/in \
+  #> $example/output/weaver-prototype.nothing.out \
+  #2>$example/output/weaver-prototype.nothing.err
+#$WEAVER_PROTOTYPE_BIN -w weights/weights -g $example/grammar -i $example/in -l \
+  #> $example/output/weaver-prototype.glue.out \
+  #2>$example/output/weaver-prototype.glue.err
+#$WEAVER_PROTOTYPE_BIN -w weights/weights -g $example/grammar -i $example/in -p \
+  #> $example/output/weaver-prototype.passthrough.out \
+  #2>$example/output/weaver-prototype.passthrough.err
+#$WEAVER_PROTOTYPE_BIN -w weights/weights -g $example/grammar -i $example/in \
+  #-l -p \
+    #> $example/output/weaver-prototype.default.out \
+    #2>$example/output/weaver-prototype.default.err
+#$WEAVER_PROTOTYPE_BIN -w weights/weights.0 -g $example/grammar -i $example/in \
+  #-l -p \
+    #> $example/output/weaver-prototype.default-0.out \
+    #2>$example/output/weaver-prototype.default-0.err
+
+done
+
