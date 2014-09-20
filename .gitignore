@@ -1,7 +1,7 @@
 *.o
+example/*/output
 fast_weaver
-test_grammar
-test_sparse_vector
+test_*
 make_pak
 read_pak
 external/gperftools-2.1/
