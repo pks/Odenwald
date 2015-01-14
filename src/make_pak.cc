@@ -4,7 +4,7 @@
 #include <msgpack/fbuffer.hpp>
 #include <string>
 
-#include "json-cpp/single_include/json-cpp.hpp"
+#include "json-cpp.hpp"
 #include "hypergraph.hh"
 #include "types.hh"
 
