@@ -10,13 +10,13 @@ def main
   n = input.size
 
   STDERR.write "> reading grammar\n"
-  grammar = Grammar::Grammar.new '../example/toy/grammar'
-  #grammar = Grammar::Grammar.new '../example/toy/grammar-test'
+  #grammar = Grammar::Grammar.new '../example/toy/grammar'
+  grammar = Grammar::Grammar.new '../example/toy/grammar-test'
   #grammar = Grammar::Grammar.new '../example/glue/grammar'
-  #grammar = Grammar::Grammar.new '../example/3/grammar.3.gz'
+  #grammar = Grammar::Grammar.new '../example/3/grammar'
 
   STDERR.write ">> adding glue grammar\n"
-  #grammar.add_glue_rules
+  grammar.add_glue_rules
 
   STDERR.write ">> adding pass-through grammar\n"
   #grammar.add_pass_through_rules input
@@ -30,7 +30,7 @@ def main
   Parse::parse input, n, active_chart, passive_chart, grammar
 
   puts "\n---\npassive chart"
-  Parse::visit(1, 0, 5) { |i,j| puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts " #{j} #{item.to_s}" }; puts }
+  Parse::visit(1, 0, n) { |i,j| k=0; puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts " #{k} #{item.to_s}"; k+=1 }; puts }
 
   weights_file = '../example/toy/weights'
   #weights_file = '../example/glue/weights'

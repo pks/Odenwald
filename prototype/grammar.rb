@@ -42,7 +42,7 @@ class NT
 end
 
 class Rule
-  attr_accessor :lhs, :rhs, :target, :map, :f
+  attr_accessor :lhs, :rhs, :target, :map, :f, :arity
 
   def initialize lhs=NT.new, rhs=[], target=[], map=[], f=SparseVector.new, arity=0
     @lhs    = lhs
@@ -116,7 +116,7 @@ class Grammar
     @rules.map { |r| r.to_s }.join "\n"
   end
 
-  def add_glue
+  def add_glue_rules
     @rules.map { |r| r.lhs.symbol }.select { |s| s != 'S' }.uniq.each { |symbol|
       @rules << Rule.new(NT.new('S'), [NT.new(symbol, 0)], [NT.new(symbol, 0)], [0])
       @start_nt << @rules.last
@@ -125,7 +125,7 @@ class Grammar
     }
   end
 
-  def add_pass_through a
+  def add_pass_through_rules a
     return if !a
     a.each { |word|
       @rules << Rule.new(NT.new('X'), [T.new(word)], [T.new(word)])

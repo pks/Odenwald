@@ -9,11 +9,11 @@ def read_grammar fn, add_glue, add_pass_through, input=nil
   grammar = Grammar::Grammar.new fn
   if add_glue
     STDERR.write ">> adding glue rules\n"
-    grammar.add_glue
+    grammar.add_glue_rules
   end
   if add_pass_through
     STDERR.write ">> adding pass-through rules\n"
-    grammar.add_pass_through input
+    grammar.add_pass_through_rules input
   end
   return grammar
 end
@@ -51,7 +51,7 @@ def main
     if sgm_input && x['grammar']
       grammar = read_grammar x['grammar'], cfg[:add_glue], cfg[:add_pass_through], input
     elsif cfg[:add_pass_through]
-      grammar.add_pass_through input
+      grammar.add_pass_through_rules input
     end
 
 
