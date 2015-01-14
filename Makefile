@@ -1,69 +1,86 @@
 COMPILER=clang
 CFLAGS=-std=c++11 -O3 -Wall
+
 TCMALLOC=$(shell pwd)/external/gperftools-2.1/lib/libtcmalloc_minimal.a -pthread
+MSGPACK_C=$(shell pwd)/external/msgpack-c/lib/libmsgpack.a -I./external/msgpack-c/include
+JSON_CPP=-I$(shell pwd)/external/json-cpp/include
+
 SRC=src
+BIN=bin
 
-PRINT = @echo -e "\e[1;34mBuilding $<\e[0m"
+################################################################################
+# fast_weaver
+PRINT = @echo -e "\e[1;34mBuilding $@\e[0m"
 
-all: $(SRC)/hypergraph.o $(SRC)/fast_weaver.cc
+all: $(BIN)/fast_weaver util test
+
+$(BIN)/fast_weaver: $(BIN) $(SRC)/hypergraph.o $(SRC)/fast_weaver.cc
 	$(PRINT)
-	$(COMPILER) $(CFLAGS) -lstdc++ -lm -lmsgpack $(TCMALLOC) $(SRC)/hypergraph.o \
+	$(COMPILER) $(CFLAGS) -lstdc++ -lm $(MSGPACK_C) $(TCMALLOC) $(SRC)/hypergraph.o \
 		$(SRC)/fast_weaver.cc \
-		-o fast_weaver
+		-o $(BIN)/fast_weaver
+
+$(BIN):
+	mkdir -p $(BIN)
 
 $(SRC)/hypergraph.o: $(SRC)/hypergraph.cc $(SRC)/hypergraph.hh \
 											$(SRC)/grammar.hh \
 											$(SRC)/semiring.hh $(SRC)/sparse_vector.hh \
 											$(SRC)/types.hh
 	$(PRINT)
-	$(COMPILER) $(CFLAGS) -g -c $(TCMALLOC) \
+	$(COMPILER) $(CFLAGS) -g -c $(TCMALLOC) $(MSGPACK_C) \
 		$(SRC)/hypergraph.cc \
 		-o $(SRC)/hypergraph.o
 
-util: make_pak read_pak
+################################################################################
+# util
+util: $(BIN)/make_pak $(BIN)/read_pak
 
-make_pak: $(SRC)/make_pak.cc external/json-cpp/single_include/json-cpp.hpp \
+$(BIN)/make_pak: $(BIN) $(SRC)/make_pak.cc external/json-cpp/single_include/json-cpp.hpp \
 					$(SRC)/hypergraph.hh $(SRC)/types.hh
 	$(PRINT)
-	$(COMPILER) $(CFLAGS) -lstdc++ -lm -lmsgpack -I./external \
+	$(COMPILER) $(CFLAGS) -lstdc++ -lm $(MSGPACK_C) $(JSON_CPP) \
 		$(SRC)/make_pak.cc \
-		-o make_pak
+		-o $(BIN)/make_pak
 
-read_pak: $(SRC)/read_pak.cc
+$(BIN)/read_pak: $(SRC)/read_pak.cc
 	$(PRINT)
-	$(COMPILER) $(CFLAGS) -lstdc++ -lmsgpack \
+	$(COMPILER) $(CFLAGS) -lstdc++ $(MSGPACK_C) \
 		$(SRC)/read_pak.cc \
-		-o read_pak
+		-o $(BIN)/read_pak
 
-test: test_grammar test_hypergraph test_parse test_sparse_vector
+################################################################################
+# test
+test: $(BIN)/test_grammar $(BIN)/test_hypergraph $(BIN)/test_parse $(BIN)/test_sparse_vector
 
-test_grammar: $(SRC)/test_grammar.cc $(SRC)/grammar.hh
+$(BIN)/test_grammar: $(BIN) $(SRC)/test_grammar.cc $(SRC)/grammar.hh
 	$(PRINT)
-	$(COMPILER) $(CFLAGS) -lstdc++ -lm $(TCMALLOC) \
+	$(COMPILER) $(CFLAGS) -lstdc++ -lm $(TCMALLOC) $(MSGPACK_C) \
 		$(SRC)/test_grammar.cc \
-		-o test_grammar
+		-o $(BIN)/test_grammar
 
-test_hypergraph: $(SRC)/test_hypergraph.cc $(SRC)/hypergraph.o $(SRC)/grammar.hh
+$(BIN)/test_hypergraph: $(BIN) $(SRC)/test_hypergraph.cc $(SRC)/hypergraph.o $(SRC)/grammar.hh
 	$(PRINT)
-	$(COMPILER) $(CFLAGS) -lstdc++ -lm $(TCMALLOC) -lmsgpack $(SRC)/hypergraph.o \
+	$(COMPILER) $(CFLAGS) -lstdc++ -lm $(TCMALLOC) $(MSGPACK_C) $(SRC)/hypergraph.o \
 		$(SRC)/test_hypergraph.cc \
-		-o test_hypergraph
+		-o $(BIN)/test_hypergraph
 
-test_parse: $(SRC)/test_parse.cc $(SRC)/parse.hh \
+$(BIN)/test_parse: $(BIN) $(SRC)/test_parse.cc $(SRC)/parse.hh \
 						$(SRC)/grammar.hh $(SRC)/util.hh
 	$(PRINT)
-	$(COMPILER) $(CFLAGS) -lstdc++ -lm $(TCMALLOC) \
+	$(COMPILER) $(CFLAGS) -lstdc++ -lm $(TCMALLOC) $(MSGPACK_C) \
 		$(SRC)/test_parse.cc \
-		-o test_parse
+		-o $(BIN)/test_parse
 
-test_sparse_vector: $(SRC)/test_sparse_vector.cc $(SRC)/sparse_vector.hh
+$(BIN)/test_sparse_vector: $(BIN) $(SRC)/test_sparse_vector.cc $(SRC)/sparse_vector.hh
 	$(PRINT)
 	$(COMPILER) $(CFLAGS) -lstdc++ -lm $(TCMALLOC) \
 		$(SRC)/test_sparse_vector.cc \
-		-o test_sparse_vector
+		-o $(BIN)/test_sparse_vector
 
+################################################################################
+# clean
 clean:
-	rm -f fast_weaver hypergraph.o
-	rm -f make_pak read_pak
-	rm -f test_grammar test_sparse_vector test_parse
+	rm -f $(SRC)/*.o
+	rm -f $(BIN)/*
 
