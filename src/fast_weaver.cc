@@ -9,10 +9,10 @@ main(int argc, char** argv)
   G::Grammar g;
   Hg::io::read(hg, g.rules, y, argv[1]);
   //Hg::io::manual(hg, g.rules);
-  clock_t begin = clock();
   Hg::Path p;
   Hg::viterbi_path(hg, p);
   vector<string> s;
+  clock_t begin = clock();
   Hg::derive(p, p.back()->head, s);
   for (auto it: s)
     cout << it << " ";

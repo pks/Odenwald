@@ -52,7 +52,6 @@ struct NT : public Item {
     istringstream ss(t);
     if (ss >> index_) { // [i]
       symbol_ = "";
-      index_ = stoi(s);
       return;
     } else {
       ss.clear();
@@ -111,7 +110,7 @@ struct T : public Item {
   virtual ostream&
   escaped(ostream& os) const
   {
-    os << util::json_escape(symbol_);
+    return os << util::json_escape(symbol_);
   }
 };
 
@@ -156,6 +155,7 @@ struct Rule {
 Sv::SparseVector<string, score_t>* f;
                map<size_t, size_t> order;
                             string as_str_;
+                              bool is_glue;
 
   Rule() {}
 
@@ -201,6 +201,7 @@ Sv::SparseVector<string, score_t>* f;
       }
       if (j == 4) break;
     }
+    r->is_glue = false;
   }
 
   ostream&
@@ -303,14 +304,13 @@ struct Grammar {
     for (auto nt: nts) {
       ostringstream oss_1;
       oss_1 << "[S] ||| [" << nt << ",1] ||| [" << nt << ",1] ||| ";
-      cout << oss_1.str() << endl;
       Rule* r1 = new Rule(oss_1.str(), vocab);
+      r1->is_glue = true;
       rules.push_back(r1); start_non_terminal.push_back(r1);
       ostringstream oss_2;
       oss_2 << "[S] ||| [S,1] [" << nt << ",2] ||| [S,1] [" << nt << ",2] ||| ";
-      cout << oss_2.str() << endl;
       Rule* r2 = new Rule(oss_2.str(), vocab);
-      cout << *r2 << endl;
+      r2->is_glue = true;
       rules.push_back(r2); start_non_terminal.push_back(r2);
     }
   }

@@ -168,7 +168,7 @@ read(Hypergraph& hg, vector<G::Rule*>& rules, G::Vocabulary& vocab, const string
         }
         e->rule = rules[e->rule_id_];
       } else {
-        // ERROR
+        assert(false); // ERROR
       }
       i++;
     }

@@ -72,6 +72,8 @@ struct ChartItem
     rule->repr(os);
     os << ">";
     os << endl;
+
+    return os;
   }
 
   friend ostream&
@@ -128,8 +130,11 @@ struct Chart
     for (map<Span, vector<ChartItem*> >::const_iterator it = chart.m_.cbegin();
          it != chart.m_.cend(); it++) {
       os << "(" << it->first.first << "," << it->first.second << ")" << endl;
-      for (auto jt: it->second)
-        jt->repr(os); os << endl;
+      size_t j = 0;
+      for (auto jt: it->second) {
+        os << j << " "; jt->repr(os);
+        j++;
+      }
     }
 
     return os;
@@ -139,27 +144,19 @@ struct Chart
 bool
 scan(ChartItem* item, vector<symbol_t> in, size_t limit, Chart& passive)
 {
-  //cout << "S1" << endl;
   while (item->dot < item->rule->rhs.size() &&
          item->rule->rhs[item->dot]->type() == G::TERMINAL)  {
-  //cout << "S2" << endl;
     if (item->span.second == limit)  return false;
-  //cout << "S3" << endl;
     if (item->rule->rhs[item->dot]->symbol() == in[item->span.second]) {
-  //cout << "S4" << endl;
       item->dot++;
-  //cout << "S5" << endl;
       item->span.second++;
-  //cout << "S6" << endl;
     } else {
-  //cout << "S7" << endl;
       return false;
     }
   }
-  //cout << "S8" << endl;
+
   return true;
 }
-
 
 void
 init(vector<symbol_t> const& in, size_t n, Chart& active,  Chart& passive, G::Grammar const& g)
@@ -168,10 +165,8 @@ init(vector<symbol_t> const& in, size_t n, Chart& active,  Chart& passive, G::Gr
     size_t j = 0;
     for (auto it: in) {
       if (it == rule->rhs.front()->symbol()) {
-        cout << it << " " << j << j+rule->rhs.size() << endl;
         Span span(j, j+rule->rhs.size());
         passive.add(new ChartItem(rule, span, rule->rhs.size()), span);
-        cout << "new passive item [1] " << *passive.at(span).back() << endl;
       }
       j++;
     }
@@ -179,11 +174,13 @@ init(vector<symbol_t> const& in, size_t n, Chart& active,  Chart& passive, G::Gr
 }
 
 void
-parse(vector<symbol_t> const& in, size_t n, Chart& active, Chart& passive, G::Grammar const& g)
+parse(vector<symbol_t> const& in, size_t n, Chart& active, Chart& passive, G::Grammar const& g, size_t max_span_size)
 {
   vector<Span> spans;
   Parse::visit(spans, 1, 0, n);
   for (auto span: spans) {
+
+  size_t span_size = span.second-span.first;
 
   cout << "Span (" << span.first << "," << span.second << ")" << endl;
 
@@ -192,109 +189,82 @@ parse(vector<symbol_t> const& in, size_t n, Chart& active, Chart& passive, G::Gr
     if (scan(item, in, span.second, passive)
         && span.first + item->rule->rhs.size() <= span.second) {
       active.add(item, span);
-      cout << "new active item [1] " << *active.at(span).back();
     }
   }
 
   for (auto it: g.start_non_terminal) {
-    if (it->rhs.size() > span.second-span.first) continue;
+    if (it->rhs.size() > span.second-span.first
+        || (span_size>max_span_size)) continue;
     active.add(new ChartItem(it, Span(span.first,span.first), 0), span);
-    cout << "new active item [2] " << *active.at(span).back();
   }
 
   set<symbol_t> new_symbols;
   vector<ChartItem*> remaining_items;
 
   while (true) {
-    cout << "active size at (" << span.first << "," << span.second << ") " << active.at(span).size() << endl;
-    cout << "passive size at (" << span.first << "," << span.second << ") " << passive.at(span).size() << endl;
     if (active.at(span).empty()) break;
     ChartItem* item = active.at(span).back();
-    cout << "current item " << *item;
+    active.at(span).pop_back();
+    while (item->rule->rhs[item->dot]->type() == G::NON_TERMINAL) {
+      symbol_t cur_sym = item->rule->rhs[item->dot]->symbol(); 
+    }
+  }
+
+  /*while (true) {
+    if (active.at(span).empty()) break;
+    ChartItem* item = active.at(span).back();
     active.at(span).pop_back();
     bool advanced = false;
     vector<Span> spans2;
     Parse::visit(spans2, 1, span.first, span.second, 1);
     for (auto span2: spans2) {
-      cout << "A" << endl;
       if (item->rule->rhs[item->dot]->type() == G::NON_TERMINAL) {
-      cout << "B" << endl;
         if (passive.has_at(item->rule->rhs[item->dot]->symbol(), span2)) {
-      cout << "C" << endl;
           if (span2.first == item->span.second) {
-      cout << "D" << endl;
             ChartItem* new_item = new ChartItem(*item);
-            cout << "D1" << endl;
             new_item->span.second = span2.second;
-            cout << "D2" << endl;
             new_item->dot++;
-            cout << "D3" << endl;
             new_item->tails_spans.push_back(span2);
-            cout << "D4" << endl;
             if (scan(new_item, in, span.second, passive)) {
-      cout << "E" << endl;
               if (new_item->dot == new_item->rule->rhs.size()) {
-      cout << "F" << endl;
                 if (new_item->span.first == span.first && new_item->span.second == span.second) {
-      cout << "G" << endl;
-      cout << "H" << endl;
                   new_symbols.insert(new_item->rule->lhs->symbol());
                   passive.add(new_item, span);
-                  cout << "new passive item [2] " << *new_item;
                   advanced = true;
                 }
               } else {
                 if (new_item->span.second+(new_item->rule->rhs.size()-new_item->dot) <= span.second) {
                   active.add(new_item, span);
-                  cout << "new active item [3] " << *new_item;
                 }
               }
             }
-            cout << "I" << endl;
           }
         }
       }
     }
-            cout << "J" << endl;
     if (!advanced) {
-            cout << "K" << endl;
       remaining_items.push_back(item);
     }
   }
 
   for (auto new_sym: new_symbols) {
-    cout << "new sym "  << new_sym << endl;
     for (auto rem_item: remaining_items) {
       if (rem_item->dot != 0 ||
           rem_item->rule->rhs[rem_item->dot]->type() != G::NON_TERMINAL) {
         continue;
-        cout << "K1" << endl;
       }
-        cout << "K2" << endl;
       if (rem_item->rule->rhs[rem_item->dot]->symbol() == new_sym) {
-        cout << "K3" << endl;
         ChartItem* new_item = new ChartItem(*rem_item);
-        cout << "K31" << endl;
-        //new_item->tails_spans[new_item->dot-1] = span;
         new_item->tails_spans.push_back(span);
         new_item->dot++;
-        cout << "K32" << endl;
         if (new_item->dot == new_item->rule->rhs.size()) {
-        cout << "K4" << endl;
           new_symbols.insert(new_item->rule->lhs->symbol());
           passive.add(new_item, span);
         }
       }
     }
+  }*/
   }
-
-  cout << "L" << endl;
-  cout << "-------------------" << endl;
-  cout << endl;
-  }
-
-  //cout << "ACTIVE" << endl << active << endl;
-  cout << "PASSIVE" << endl << passive << endl;
 }
 
 } //
