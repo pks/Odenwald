@@ -1,65 +1,127 @@
 #!/bin/zsh -x
 
-CDEC_BIN=~/src/cdec-dtrain/decoder/cdec
-CDEC_MINIMAL_BIN=~/src/cdec-dtrain/decoder/minimal_decoder
-WEAVER_PROTOTYPE_BIN=../prototype/weaver.rb
-FAST_WEAVER_BIN=../fast_weaver
+            CDEC=~/src/cdec_json_serialization/decoder/cdec
+    CDEC_MINIMAL=~/src/cdec_json_serialization/decoder/minimal_decoder
+WEAVER_PROTOTYPE=../prototype/weaver_proto.rb
+     FAST_WEAVER=../bin/fast_weaver
+       CDEC2JSON=./cdec/cdec2json.py
+        MAKE_PAK=../bin/make_pak
 
+#  1020 \
 for example in \
+  1391 \
+  1495 \
+  1570 \
+  1889 \
+  2002 \
   3    \
+  429  \
+  748  \
 ; do
 
-mkdir -p $example/output
+OUT_DIR=$example/output
+mkdir -p $OUT_DIR
 
-$CDEC_BIN -c cdec/default.ini -w weights/weights -n \
- -g $example/grammar < $example/in \
-   > $example/output/cdec.nothing.out \
-   2>$example/output/cdec.nothing.err
-$CDEC_BIN -c cdec/default.ini -w weights/weights \
- -g $example/grammar < $example/in \
-   > $example/output/cdec.glue.out \
-   2>$example/output/cdec.glue.err
-$CDEC_BIN -c cdec/passthrough.ini -w weights/weights -n \
- -g $example/grammar < $example/in \
-   > $example/output/cdec.passthrough.out \
-   2>$example/output/cdec.passthrough.err
-$CDEC_BIN -c cdec/default.ini -w weights/weights \
- -g $example/grammar < $example/in \
-   > $example/output/cdec.default.out \
-   2>$example/output/cdec.default.err
-$CDEC_BIN -c cdec/default.ini -w weights/weights.0 \
-  -g $example/grammar < $example/in \
-    > $example/output/cdec.default-0.out \
-    2>$example/output/cdec.default-0.err
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# cdec
+#
+$CDEC                    \
+ -c cdec/default.ini     \
+ -w weights/weights      \
+ -g $example/grammar     \
+ -O $OUT_DIR             \
+  < $example/in          \
+  > $OUT_DIR/cdec.out    \
+  2>$OUT_DIR/cdec.err
+mv $OUT_DIR/0.json.gz $OUT_DIR/cdec.json.gz
 
-$CDEC_MINIMAL_BIN $example/cdec.json.gz weights/weights \
-  > $example/output/cdec-minimal.out \
-  2>$example/output/cdec-minimal.err
-$CDEC_MINIMAL_BIN $example/cdec.json.gz weights/weights.0 \
-  > $example/output/cdec-minimal.0.out \
-  2>$example/output/cdec-minimal.0.err
+# +passthrough
+$CDEC                             \
+ -c cdec/passthrough.ini          \
+ -w weights/weights               \
+ -g $example/grammar              \
+ -O $OUT_DIR                      \
+  < $example/in                   \
+  > $OUT_DIR/cdec.passthrough.out \
+  2>$OUT_DIR/cdec.passthrough.err
+mv $OUT_DIR/0.json.gz $OUT_DIR/cdec.passthrough.json.gz
 
-$FAST_WEAVER_BIN $example/weaver.pak \
-  > $example/output/fast_weaver.out \
-  2>$example/output/fast_weaver.err
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# cdec2json
+#
+$CDEC2JSON                  \
+ -c cdec/default.ini        \
+ -w weights/weights         \
+ -g $example/grammar        \
+  < $example/in             \
+  > $OUT_DIR/cdec2json.json \
+  2>$OUT_DIR/cdec2json.err
 
-$WEAVER_PROTOTYPE_BIN -w weights/weights -g $example/grammar -i $example/in \
- > $example/output/weaver-prototype.nothing.out \
- 2>$example/output/weaver-prototype.nothing.err
-$WEAVER_PROTOTYPE_BIN -w weights/weights -g $example/grammar -i $example/in -l \
- > $example/output/weaver-prototype.glue.out \
- 2>$example/output/weaver-prototype.glue.err
-$WEAVER_PROTOTYPE_BIN -w weights/weights -g $example/grammar -i $example/in -p \
- > $example/output/weaver-prototype.passthrough.out \
- 2>$example/output/weaver-prototype.passthrough.err
-$WEAVER_PROTOTYPE_BIN -w weights/weights -g $example/grammar -i $example/in \
- -l -p \
-   > $example/output/weaver-prototype.default.out \
-   2>$example/output/weaver-prototype.default.err
-$WEAVER_PROTOTYPE_BIN -w weights/weights.0 -g $example/grammar -i $example/in \
-  -l -p \
-    > $example/output/weaver-prototype.default-0.out \
-    2>$example/output/weaver-prototype.default-0.err
+# +passthrough
+$CDEC2JSON                              \
+ -c cdec/passthrough.ini                \
+ -w weights/weights                     \
+ -g $example/grammar                    \
+  < $example/in                         \
+  > $OUT_DIR/cdec2json.passthrough.json \
+  2>$OUT_DIR/cdec2json.passthrough.err
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# cdec minimal_decoder
+#
+$CDEC_MINIMAL                 \
+ $OUT_DIR/cdec.json.gz        \
+ weights/weights              \
+  > $OUT_DIR/cdec_minimal.out \
+  2>$OUT_DIR/cdec_minimal.err
+
+$CDEC_MINIMAL                             \
+ $OUT_DIR/cdec.passthrough.json.gz        \
+ weights/weights                          \
+  > $OUT_DIR/cdec_minimal.passthrough.out \
+  2>$OUT_DIR/cdec_minimal.passthrough.err
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# fast_weaver
+#
+# make pak files first
+$MAKE_PAK                \
+ $OUT_DIR/cdec2json.json \
+ $OUT_DIR/weaver.pak
+$MAKE_PAK                            \
+ $OUT_DIR/cdec2json.passthrough.json \
+ $OUT_DIR/weaver.passthrough.pak
+
+$FAST_WEAVER                 \
+ $OUT_DIR/weaver.pak         \
+  > $OUT_DIR/fast_weaver.out \
+  2>$OUT_DIR/fast_weaver.err
+
+$FAST_WEAVER                             \
+ $OUT_DIR/weaver.passthrough.pak         \
+  > $OUT_DIR/fast_weaver.passthrough.out \
+  2>$OUT_DIR/fast_weaver.passthrough.err
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# weaver prototype
+#
+$WEAVER_PROTOTYPE         \
+ -w weights/weights           \
+ -g $example/grammar          \
+ -i $example/in               \
+ -l                           \
+  > $OUT_DIR/weaver_proto.out \
+  2>$OUT_DIR/weaver_proto.err
+
+# +passthrough
+$WEAVER_PROTOTYPE                         \
+ -w weights/weights                       \
+ -g $example/grammar                      \
+ -i $example/in                           \
+ -l                                       \
+ -p                                       \
+  > $OUT_DIR/weaver_proto.passthrough.out \
+  2>$OUT_DIR/weaver_proto.passthrough.err
 
 done
 
