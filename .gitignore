@@ -4,6 +4,3 @@ fast_weaver
 test_*
 make_pak
 read_pak
-external/gperftools-2.1/
-external/json-cpp/
-external/msgpack-c/
