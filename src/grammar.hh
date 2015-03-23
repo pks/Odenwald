@@ -194,7 +194,7 @@ Sv::SparseVector<string, score_t>* f;
         r->target.push_back(item);
       } else if (j == 3) { // feature vector
         Sv::SparseVector<string, score_t>::from_s(r->f, buf);
-        // FIXME: this is slow!!!          ^^^ 
+        // FIXME: this is slow!!!
       } else if (j == 4) { // alignment
       } else {
         // error

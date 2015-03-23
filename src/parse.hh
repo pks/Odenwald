@@ -206,7 +206,7 @@ parse(vector<symbol_t> const& in, size_t n, Chart& active, Chart& passive, G::Gr
     ChartItem* item = active.at(span).back();
     active.at(span).pop_back();
     while (item->rule->rhs[item->dot]->type() == G::NON_TERMINAL) {
-      symbol_t cur_sym = item->rule->rhs[item->dot]->symbol(); 
+      symbol_t cur_sym = item->rule->rhs[item->dot]->symbol();
     }
   }
 
