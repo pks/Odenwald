@@ -1,3 +1,9 @@
-[submodule "util/json-cpp"]
+[submodule "external/json-cpp"]
 	path = external/json-cpp
 	url = https://github.com/ascheglov/json-cpp.git
+[submodule "external/gperftools"]
+	path = external/gperftools
+	url = https://code.google.com/p/gperftools-git/
+[submodule "external/msgpack-c"]
+	path = external/msgpack-c
+	url = https://github.com/msgpack/msgpack-c.git
