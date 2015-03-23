@@ -75,6 +75,7 @@ def main
     path, score = HG::viterbi_path hypergraph, hypergraph.nodes_by_id[-1], semiring
     s = HG::derive path, path.last.head, []
     STDOUT.write "#{s.map { |i| i.word }.join ' '} ||| #{Math.log score}\n"
+
   }
 end
 

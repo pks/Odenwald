@@ -1,24 +1,24 @@
 #!/usr/bin/env ruby
 
+require 'zipf'
 require_relative 'parse'
 
 def main
-  STDERR.write "> reading input from TODO\n"
-  input = 'ich sah ein kleines haus'.split
-  #input = 'lebensmittel schuld an europäischer inflation'.split
-  #input = 'offizielle prognosen sind von nur 3 prozent ausgegangen , meldete bloomberg .'.split
+  fn = '../example/toy/in'
+  #fn = '../example/glue/in'
+  STDERR.write "> reading input from #{fn}\n"
+  input = ReadFile.new(fn).readlines_strip.first.split
   n = input.size
 
   STDERR.write "> reading grammar\n"
-  #grammar = Grammar::Grammar.new '../example/toy/grammar'
-  grammar = Grammar::Grammar.new '../example/toy/grammar-test'
+  grammar = Grammar::Grammar.new '../example/toy/grammar'
+  #grammar = Grammar::Grammar.new '../example/toy/grammar-test'
   #grammar = Grammar::Grammar.new '../example/glue/grammar'
-  #grammar = Grammar::Grammar.new '../example/3/grammar'
 
   STDERR.write ">> adding glue grammar\n"
   grammar.add_glue_rules
 
-  STDERR.write ">> adding pass-through grammar\n"
+  #STDERR.write ">> adding pass-through grammar\n"
   #grammar.add_pass_through_rules input
 
   STDERR.write "> initializing charts\n"
@@ -29,15 +29,16 @@ def main
   STDERR.write "> parsing\n"
   Parse::parse input, n, active_chart, passive_chart, grammar
 
-  puts "\n---\npassive chart"
-  Parse::visit(1, 0, n) { |i,j| k=0; puts "#{i},#{j}"; passive_chart.at(i,j).each { |item| puts " #{k} #{item.to_s}"; k+=1 }; puts }
+  STDERR.write "\n---\npassive chart\n"
+  Parse::visit(1, 0, n) { |i,j| k=0; STDERR.write "#{i},#{j}\n"; passive_chart.at(i,j).each { |item| STDERR.write " #{k} #{item.to_s}\n"; k+=1 }; STDERR.write "\n" }
 
-  weights_file = '../example/toy/weights'
-  #weights_file = '../example/glue/weights'
-  #weights_file = '../example/3/weights.init'
-  weights = SparseVector.from_kv(ReadFile.read(weights_file), ' ', "\n")
-  if !weights
-    weights = SparseVector.new 
+  weights_fn = '../example/toy/weights.toy'
+  #weights_fn = nil
+  weights = nil
+  if weights_fn
+    weights = SparseVector.from_kv(ReadFile.read(weights_fn), ' ', "\n")
+  else
+    weights = SparseVector.new
   end
 
   puts passive_chart.to_hg.to_json weights
