@@ -142,6 +142,31 @@ def HG::viterbi_path hypergraph, root, semiring=ViterbiSemiring.new
     }
     best_path << best_edge if best_edge
   }
+
+  return best_path, toposorted.last.score
+end
+
+def HG::new_obj_path hypergraph, root, semiring=ViterbiSemiring.new
+  toposorted = topological_sort hypergraph.nodes
+  hypergraph.nodes.each { |n| n.score=1.0/0 }
+  root.score = 1
+  best_path = []
+  toposorted.each { |n|
+    best_edge = n.incoming.first
+    n.incoming.each { |e|
+      s = 0
+      e.tails.each { |m|
+        s += m.score
+      }
+      s *= e.score
+      if n.score >=  s
+        best_edge = e
+      end
+      n.score = [s, n.score].min
+    }
+    best_path << best_edge if best_edge
+  }
+
   return best_path, toposorted.last.score
 end
 
@@ -163,6 +188,7 @@ def HG::all_paths hypergraph, root
     end
     paths = new_paths
   }
+
   return paths
 end
 
@@ -182,11 +208,12 @@ def HG::derive path, cur, carry
   return carry
 end
 
-def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=false
+def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=false, new_obj_model=nil
   nodes = []
   edges = []
   nodes_by_id = {}
-  h = JSON.parse File.new(fn).read
+  f = ReadFile.new fn
+  h = JSON.parse f.read
   w = SparseVector.from_h h['weights']
   h['nodes'].each { |x|
     n = Node.new x['id'], x['symbol'], x['span']
@@ -202,6 +229,14 @@ def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=fal
     if x['f']
       if log_weights
         e.score = Math.exp(w.dot(e.f))
+      elsif new_obj_model
+        e.score = e.f.dot(e.f)
+        new_obj_model.each { |x|
+          wx = x[0]
+          wf = x[1]
+          e.score -= wx*wf.dot(e.f)
+        }
+        puts e.score
       else
         e.score = w.dot(e.f)
       end
