@@ -84,6 +84,9 @@ void
 viterbi_path(Hypergraph& hg, Path& p);
 
 void
+sv_path(Hypergraph& hg, Path& p);
+
+void
 derive(const Path& p, const Node* cur, vector<string>& carry);
 
 namespace io {

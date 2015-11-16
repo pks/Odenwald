@@ -97,6 +97,31 @@ viterbi_path(Hypergraph& hg, Path& p)
   }
 }
 
+void
+sv_path(Hypergraph& hg, Path& p)
+{
+  list<Node*>::iterator root = \
+    find_if(hg.nodes.begin(), hg.nodes.end(), \
+    [](Node* n) { return n->incoming.size() == 0; });
+  //list<Node*>::iterator root = hg.nodes.begin();
+
+  Hg::topological_sort(hg.nodes, root);
+  //  ^^^ FIXME do I need to do this when reading from file?
+
+  for (const auto it: hg.nodes)
+    it->score = 0;
+  (**root).score = 1.0;
+
+  for (auto n: hg.nodes) {
+    Edge* best_edge;
+    bool best = false;
+    for (auto e: n->incoming) {
+      e->rule->f->repr(cout);
+      cout << endl;
+    }
+  }
+}
+
 
 void
 derive(const Path& p, const Node* cur, vector<string>& carry)

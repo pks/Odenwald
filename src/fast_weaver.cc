@@ -20,7 +20,8 @@ main(int argc, char** argv)
   // viterbi
   clock_t begin_viterbi = clock();
   Hg::Path p;
-  Hg::viterbi_path(hg, p);
+  Hg::sv_path(hg, p);
+  exit(1);
   vector<string> s;
   Hg::derive(p, p.back()->head, s);
   for (auto it: s)
