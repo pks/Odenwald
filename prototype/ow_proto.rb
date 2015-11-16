@@ -19,27 +19,26 @@ def read_grammar fn, add_glue, add_pass_through, input=nil
 end
 
 def main
-  conf = Trollop::options do
+  cfg = Trollop::options do
     opt :input,            "", :type => :string, :default => '-',    :short => '-i'
     opt :grammar,          "", :type => :string, :required => true,  :short => '-g'
     opt :weights,          "", :type => :string, :required => true,  :short => '-w'
     opt :add_glue,         "", :type => :bool,   :default => false,  :short => '-l'
     opt :add_pass_through, "", :type => :bool,   :default => false,  :short => '-p'
-    opt :new_obj,          "", :type => :string, :default => nil,    :short => '-N'
   end
 
   grammar = nil
-  if conf[:grammar]
-    grammar = read_grammar conf[:grammar], conf[:add_glue], conf[:add_pass_through]
+  if cfg[:grammar]
+    grammar = read_grammar cfg[:grammar], cfg[:add_glue], cfg[:add_pass_through]
   end
 
   sgm_input = false
-  if ['sgm', 'xml'].include? conf[:input].split('.')[-1]
+  if ['sgm', 'xml'].include? cfg[:input].split('.')[-1]
     sgm_input = true
   end
 
-  STDERR.write "> reading input from '#{conf[:input]}'\n"
-  ReadFile.readlines_strip(conf[:input]).each { |input|
+  STDERR.write "> reading input from '#{cfg[:input]}'\n"
+  ReadFile.readlines_strip(cfg[:input]).each { |input|
 
     if sgm_input
       x = XmlSimple.xml_in(input)
@@ -50,8 +49,8 @@ def main
     n = input.size
 
     if sgm_input && x['grammar']
-      grammar = read_grammar x['grammar'], conf[:add_glue], conf[:add_pass_through], input
-    elsif conf[:add_pass_through]
+      grammar = read_grammar x['grammar'], cfg[:add_glue], cfg[:add_pass_through], input
+    elsif cfg[:add_pass_through]
       grammar.add_pass_through_rules input
     end
 
@@ -64,20 +63,19 @@ def main
     STDERR.write "> parsing\n"
     Parse::parse input, n, active_chart, passive_chart, grammar
 
-    weights = SparseVector.from_kv(ReadFile.read(conf[:weights]), ' ', "\n")
+    weights = SparseVector.from_kv(ReadFile.read(cfg[:weights]), ' ', "\n")
     if !weights
       weights = SparseVector.new
     end
 
     hypergraph = passive_chart.to_hg weights
 
-    path = score = nil
     STDERR.write "> viterbi\n"
     semiring = ViterbiSemiring.new
     path, score = HG::viterbi_path hypergraph, hypergraph.nodes_by_id[-1], semiring
-
     s = HG::derive path, path.last.head, []
     STDOUT.write "#{s.map { |i| i.word }.join ' '} ||| #{Math.log score}\n"
+
   }
 end
 
