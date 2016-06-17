@@ -236,7 +236,6 @@ def HG::read_hypergraph_from_json fn, semiring=RealSemiring.new, log_weights=fal
           wf = x[1]
           e.score -= wx*wf.dot(e.f)
         }
-        puts e.score
       else
         e.score = w.dot(e.f)
       end
