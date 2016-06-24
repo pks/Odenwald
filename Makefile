@@ -14,13 +14,13 @@ PRINT_END = @echo -e "\e[1;32mfinished building $@\e[0m"
 ###############################################################################
 # all
 #
-all: $(BIN)/fast_weaver util test
+all: $(BIN)/ow util test
 
 ###############################################################################
-# fast_weaver
+# ow
 #
 
-$(BIN)/fast_weaver: $(BIN) $(SRC)/hypergraph.o $(SRC)/fast_weaver.cc
+$(BIN)/ow: $(BIN) $(SRC)/hypergraph.o $(SRC)/odenwald.cc
 	$(PRINT_BEGIN)
 	$(COMPILER) $(CFLAGS) \
 		-lstdc++ \
@@ -28,8 +28,8 @@ $(BIN)/fast_weaver: $(BIN) $(SRC)/hypergraph.o $(SRC)/fast_weaver.cc
 		$(MSGPACK_C) \
 		$(TCMALLOC) \
 		$(SRC)/hypergraph.o \
-		$(SRC)/fast_weaver.cc \
-		-o $(BIN)/fast_weaver
+		$(SRC)/odenwald.cc \
+		-o $(BIN)/ow
 	$(PRINT_END)
 
 $(BIN):
