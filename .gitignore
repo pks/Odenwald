@@ -1,7 +1,4 @@
 *.o
+bin/
 example/*/output
-fast_weaver
-test_*
-make_pak
-read_pak
-cdec_json_serialization/
+external/cdec_json_serialization/
