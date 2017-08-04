@@ -1,4 +1,4 @@
 *.o
 bin/
-example/*/output
+#example/*/output
 external/cdec_json_serialization/
