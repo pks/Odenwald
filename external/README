@@ -1,0 +1,16 @@
+cdec_json_serialization:
+  https://github.com/pks/cdec-dtrain-legacy
+  branch json_serial @c3f3891a9c146483b63f3d903f9971438850bbad
+
+gperftools:
+  https://code.google.com/p/gperftools-git/
+  master @e54971d58641853a9515d9f0313645729eab113a
+
+json-cpp:
+  https://github.com/ascheglov/json-cpp.git
+  master @4eb4b47cf4d622bc7bf34071d6b68fc5beb37051
+
+msgpack-c:
+  https://github.com/msgpack/msgpack-c.git
+  master @156a4403ab625e05ac6988cc6eac9877e407794e
+
